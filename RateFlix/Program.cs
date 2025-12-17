@@ -1,63 +1,53 @@
-using Microsoft.EntityFrameworkCore;
-using RateFlix.Data;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using RateFlix.Core;
+using RateFlix.Data;
+using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ===== Configure services =====
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Identity с роли
-builder.Services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
-    .AddRoles<IdentityRole>()
-    .AddEntityFrameworkStores<AppDbContext>();
+// Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
 
-// Add services
+// HttpClient for TMDb service
+builder.Services.AddHttpClient<TmdbService>();
+
+// AppOptions from configuration
+builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppOptions"));
+builder.Services.AddSingleton(resolver =>
+    resolver.GetRequiredService<IOptions<AppOptions>>().Value);
+
+// MVC
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
 
 var app = builder.Build();
 
-//Seed Data
+// ===== Apply migrations and seed data =====
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
-    {
-        await DataSeed.Initialize(services);
 
-        // Добавяне на роля "User" на вече съществуващи потребители
-        var userManager = services.GetRequiredService<UserManager<AppUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+    // Run migrations
+    var context = services.GetRequiredService<AppDbContext>();
+    await context.Database.MigrateAsync();
 
-        // Увери се, че ролята "User" съществува
-        if (!await roleManager.RoleExistsAsync("User"))
-        {
-            await roleManager.CreateAsync(new IdentityRole("User"));
-        }
-
-        var users = userManager.Users.ToList();
-        foreach (var user in users)
-        {
-            // Пропуска администраторите
-            if (!await userManager.IsInRoleAsync(user, "Administrator"))
-            {
-                if (!await userManager.IsInRoleAsync(user, "User"))
-                {
-                    await userManager.AddToRoleAsync(user, "User");
-                }
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
+    // Seed data
+    await DataSeed.Initialize(services);
 }
 
-// HTTP pipeline
+// ===== Configure middleware =====
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -72,10 +62,13 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Razor Pages (if any)
 app.MapRazorPages();
 
+// Default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Run application
 await app.RunAsync();

@@ -1,106 +1,253 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RateFlix.Data;
+using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
+using System.Globalization;
 
-public class DataSeed
+public static class DataSeed
 {
-    public static async Task Initialize(IServiceProvider serviceProvider)
+    public static async Task Initialize(IServiceProvider services)
     {
-        using var scope = serviceProvider.CreateScope();
-        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
-        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        using var scope = services.CreateScope();
 
-        //роли
-        string[] roles = new[] { "Administrator", "User" };
+        var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+        var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var tmdbService = scope.ServiceProvider.GetRequiredService<TmdbService>();
+
+        await context.Database.MigrateAsync();
+
+        // ===== Roles =====
+        string[] roles = { "Administrator", "User" };
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
                 await roleManager.CreateAsync(new IdentityRole(role));
         }
 
-        // Администратор
+        // ===== Admin =====
         var adminEmail = "admin@rateflix.com";
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-        if (adminUser == null)
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+        if (admin == null)
         {
-            adminUser = new AppUser { UserName = adminEmail, Email = adminEmail, EmailConfirmed = true };
-            await userManager.CreateAsync(adminUser, "Admin123!"); //парола:Admin123!
-            await userManager.AddToRoleAsync(adminUser, "Administrator");
+            admin = new AppUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+            await userManager.CreateAsync(admin, "Admin123!");
+            await userManager.AddToRoleAsync(admin, "Administrator");
         }
-        // Жанрове
+
+        // ===== Genres =====
         if (!context.Genres.Any())
         {
             context.Genres.AddRange(
                 new Genre { Name = "Action" },
-                new Genre { Name = "Comedy" },
+                new Genre { Name = "Adventure" },
+                new Genre { Name = "Animation" },
                 new Genre { Name = "Drama" },
-                new Genre { Name = "Thriller" },
-                new Genre { Name = "Sci-Fi" }
+                new Genre { Name = "Comedy" },
+                new Genre { Name = "Crime" },
+                new Genre { Name = "Sci-Fi" },
+                new Genre { Name = "Thriller" }
             );
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        //Режисьори
+        var genres = context.Genres.ToList();
+
+        // ===== Directors =====
         if (!context.Directors.Any())
         {
             context.Directors.AddRange(
                 new Director { Name = "Christopher Nolan" },
                 new Director { Name = "Quentin Tarantino" },
                 new Director { Name = "Steven Spielberg" },
-                new Director { Name = "Martin Scorsese" }
+                new Director { Name = "Martin Scorsese" },
+                new Director { Name = "Denis Villeneuve" }
             );
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
-        // Филми (15/брой)
+        var directors = context.Directors.ToList();
+
+        // ===== Actors =====
+        if (!context.Actors.Any())
+        {
+            var actors = new List<Actor>
+            {
+                new Actor { Name = "Leonardo DiCaprio", BirthDate = new DateTime(1974,11,11) },
+                new Actor { Name = "Brad Pitt", BirthDate = new DateTime(1963,12,18) },
+                new Actor { Name = "Robert De Niro", BirthDate = new DateTime(1943,8,17) },
+                new Actor { Name = "Morgan Freeman", BirthDate = new DateTime(1937,6,1) },
+                new Actor { Name = "Scarlett Johansson", BirthDate = new DateTime(1984,11,22) },
+                new Actor { Name = "Tom Hanks", BirthDate = new DateTime(1956,7,9) },
+                new Actor { Name = "Natalie Portman", BirthDate = new DateTime(1981,6,9) },
+                new Actor { Name = "Christian Bale", BirthDate = new DateTime(1974,1,30) },
+                new Actor { Name = "Emma Stone", BirthDate = new DateTime(1988,11,6) },
+                new Actor { Name = "Matt Damon", BirthDate = new DateTime(1970,10,8) },
+                new Actor { Name = "Anne Hathaway", BirthDate = new DateTime(1982,11,12) },
+                new Actor { Name = "Samuel L. Jackson", BirthDate = new DateTime(1948,12,21) },
+                new Actor { Name = "Johnny Depp", BirthDate = new DateTime(1963,6,9) },
+                new Actor { Name = "Kate Winslet", BirthDate = new DateTime(1975,10,5) },
+                new Actor { Name = "Hugh Jackman", BirthDate = new DateTime(1968,10,12) },
+                new Actor { Name = "Chris Hemsworth", BirthDate = new DateTime(1983,8,11) },
+                new Actor { Name = "Gal Gadot", BirthDate = new DateTime(1985,4,30) },
+                new Actor { Name = "Ryan Reynolds", BirthDate = new DateTime(1976,10,23) },
+                new Actor { Name = "Harrison Ford", BirthDate = new DateTime(1942,7,13) },
+                new Actor { Name = "Anne-Marie Duff", BirthDate = new DateTime(1970,10,8) }
+            };
+            context.Actors.AddRange(actors);
+            await context.SaveChangesAsync();
+        }
+
+        var actorsList = context.Actors.ToList();
+
+        // ===== Movies =====
         if (!context.Movies.Any())
         {
-            var directors = context.Directors.ToList();
-            var genres = context.Genres.ToList();
-
-            var movies = new List<Movie>
-{
-    new Movie { Title="Inception", DirectorId=directors[0].Id, IMDBScore=8.8m, MetaScore=74, Description="A thief who steals corporate secrets through dream-sharing technology is given a chance to erase his criminal history.", ReleaseYear=2010 },
-    new Movie { Title="Interstellar", DirectorId=directors[0].Id, IMDBScore=8.6m, MetaScore=74, Description="A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.", ReleaseYear=2014 },
-    new Movie { Title="The Dark Knight", DirectorId=directors[0].Id, IMDBScore=9.0m, MetaScore=84, Description="Batman faces the Joker, a criminal mastermind who wants to plunge Gotham City into chaos.", ReleaseYear=2008 },
-    new Movie { Title="Pulp Fiction", DirectorId=directors[1].Id, IMDBScore=8.9m, MetaScore=94, Description="The lives of two mob hitmen, a boxer, and others intertwine in a tale of violence and redemption.", ReleaseYear=1994 },
-    new Movie { Title="Django Unchained", DirectorId=directors[1].Id, IMDBScore=8.4m, MetaScore=81, Description="With the help of a bounty hunter, a freed slave sets out to rescue his wife from a brutal plantation owner.", ReleaseYear=2012 },
-    new Movie { Title="Inglourious Basterds", DirectorId=directors[1].Id, IMDBScore=8.3m, MetaScore=69, Description="In Nazi-occupied France, a group of Jewish soldiers plan to assassinate the leaders of the Third Reich.", ReleaseYear=2009 },
-    new Movie { Title="Jurassic Park", DirectorId=directors[2].Id, IMDBScore=8.1m, MetaScore=68, Description="A theme park showcasing cloned dinosaurs goes terribly wrong when the creatures escape.", ReleaseYear=1993 },
-    new Movie { Title="E.T.", DirectorId=directors[2].Id, IMDBScore=7.8m, MetaScore=91, Description="A troubled child befriends a gentle alien stranded on Earth and helps him return home.", ReleaseYear=1982 },
-    new Movie { Title="Schindler's List", DirectorId=directors[2].Id, IMDBScore=8.9m, MetaScore=94, Description="The story of Oskar Schindler, who saved over a thousand Jews during the Holocaust.", ReleaseYear=1993 },
-    new Movie { Title="The Wolf of Wall Street", DirectorId=directors[3].Id, IMDBScore=8.2m, MetaScore=75, Description="The rise and fall of stockbroker Jordan Belfort and his high-flying lifestyle.", ReleaseYear=2013 },
-    new Movie { Title="Shutter Island", DirectorId=directors[3].Id, IMDBScore=8.1m, MetaScore=63, Description="Two U.S. Marshals investigate the disappearance of a patient from a mental institution.", ReleaseYear=2010 },
-    new Movie { Title="Casino", DirectorId=directors[3].Id, IMDBScore=8.2m, MetaScore=82, Description="The rise and fall of a casino operator in Las Vegas with ties to the mob.", ReleaseYear=1995 },
-    new Movie { Title="Tenet", DirectorId=directors[0].Id, IMDBScore=7.5m, MetaScore=69, Description="A secret agent embarks on a time-bending mission to prevent World War III.", ReleaseYear=2020 },
-    new Movie { Title="Catch Me If You Can", DirectorId=directors[2].Id, IMDBScore=8.1m, MetaScore=75, Description="The story of Frank Abagnale Jr., who successfully committed fraud while evading the FBI.", ReleaseYear=2002 },
-    new Movie { Title="Dunkirk", DirectorId=directors[0].Id, IMDBScore=7.9m, MetaScore=94, Description="Allied soldiers are evacuated from the beaches of Dunkirk before Nazi forces can capture them.", ReleaseYear=2017 }
-};
-
-
-            context.Movies.AddRange(movies);
-            context.SaveChanges();
-
-            // MovieGenre връзки (по едно-две жанра на филм)
-            foreach (var movie in movies)
+            int page = 1, added = 0;
+            while (added < 100)
             {
-                // Примерно задава жанр Action за първите няколко, Comedy за няколко и др.
-                if (movie.Title.Contains("Inception") || movie.Title.Contains("Dark") || movie.Title.Contains("Tenet"))
+                var tmdbMovies = await tmdbService.GetMoviesAsync(page);
+                foreach (var tmdb in tmdbMovies)
                 {
-                    context.MovieGenres.Add(new MovieGenre { MovieId = movie.Id, GenreId = genres.First(g => g.Name == "Action").Id });
+                    if (added >= 100) break;
+                    if (!DateTime.TryParse(tmdb.Release_date, out var releaseDate)) continue;
+
+                    var trailerUrl = await tmdbService.GetMovieTrailerAsync(tmdb.Id)
+                                     ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+                    var movie = new Movie
+                    {
+                        Title = tmdb.Title,
+                        Description = tmdb.Overview,
+                        ReleaseYear = releaseDate.Year,
+                        IMDBScore = Math.Round(Random.Shared.NextDouble() * 9 + 1, 1),
+                        MetaScore = Random.Shared.Next(1, 101),
+                        Duration = Random.Shared.Next(80, 181),
+                        DirectorId = directors[added % directors.Count].Id,
+                        ImageUrl = $"https://image.tmdb.org/t/p/w500{tmdb.Poster_path}",
+                        TrailerUrl = trailerUrl,
+                        ContentType = "Movie"
+                    };
+
+                    context.Movies.Add(movie);
+                    await context.SaveChangesAsync();
+
+                    foreach (var genreId in tmdb.Genre_ids.Take(2))
+                    {
+                        var genre = genres.FirstOrDefault(g => g.Id == genreId);
+                        if (genre != null)
+                            context.ContentGenres.Add(new ContentGenre { ContentId = movie.Id, GenreId = genre.Id });
+                    }
+
+                    foreach (var actor in actorsList.OrderBy(a => Guid.NewGuid()).Take(3))
+                        context.ContentActors.Add(new ContentActor { ContentId = movie.Id, ActorId = actor.Id });
+
+                    added++;
                 }
-                if (movie.Title.Contains("Pulp") || movie.Title.Contains("Django"))
-                {
-                    context.MovieGenres.Add(new MovieGenre { MovieId = movie.Id, GenreId = genres.First(g => g.Name == "Drama").Id });
-                }
-                if (movie.Title.Contains("E.T.") || movie.Title.Contains("Jurassic"))
-                {
-                    context.MovieGenres.Add(new MovieGenre { MovieId = movie.Id, GenreId = genres.First(g => g.Name == "Sci-Fi").Id });
-                }
+                page++;
             }
-            context.SaveChanges();
+            await context.SaveChangesAsync();
+        }
+
+        // ===== Series with Seasons and Episodes =====
+        if (!context.Series.Any())
+        {
+            int page = 1, added = 0;
+            var tmdbSeries = await tmdbService.GetSeriesAsync(page);
+
+            foreach (var tmdb in tmdbSeries.Take(30))
+            {
+                if (!DateTime.TryParse(tmdb.First_air_date, out var airDate)) continue;
+
+                var trailerUrl = await tmdbService.GetSeriesTrailerAsync(tmdb.Id)
+                                 ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+
+                int totalSeasons = Random.Shared.Next(1, 6);
+
+                var series = new Series
+                {
+                    Title = tmdb.Name,
+                    Description = tmdb.Overview,
+                    ReleaseYear = airDate.Year,
+                    IMDBScore = 0, // Ще се изчисли след епизодите
+                    MetaScore = 0, // Ще се изчисли след епизодите
+                    DirectorId = directors[added % directors.Count].Id,
+                    ImageUrl = $"https://image.tmdb.org/t/p/w500{tmdb.Poster_path}",
+                    TrailerUrl = trailerUrl,
+                    ContentType = "Series",
+                    TotalSeasons = totalSeasons
+                };
+
+                context.Series.Add(series);
+                await context.SaveChangesAsync();
+
+                foreach (var genreId in tmdb.Genre_ids.Take(2))
+                {
+                    var genre = genres.FirstOrDefault(g => g.Id == genreId);
+                    if (genre != null)
+                        context.ContentGenres.Add(new ContentGenre { ContentId = series.Id, GenreId = genre.Id });
+                }
+
+                foreach (var actor in actorsList.OrderBy(a => Guid.NewGuid()).Take(3))
+                    context.ContentActors.Add(new ContentActor { ContentId = series.Id, ActorId = actor.Id });
+
+                // ===== Създаваме сезони и епизоди =====
+                for (int seasonNum = 1; seasonNum <= totalSeasons; seasonNum++)
+                {
+                    var season = new Season
+                    {
+                        SeasonNumber = seasonNum,
+                        SeriesId = series.Id,
+                        ReleaseYear = airDate.Year + (seasonNum - 1),
+                        Description = $"Season {seasonNum} of {series.Title}",
+                        IMDBScore = 0, // Ще се изчисли след епизодите
+                        MetaScore = 0  // Ще се изчисли след епизодите
+                    };
+
+                    context.Seasons.Add(season);
+                    await context.SaveChangesAsync();
+
+                    int episodesCount = Random.Shared.Next(6, 13);
+
+                    for (int epNum = 1; epNum <= episodesCount; epNum++)
+                    {
+                        context.Episodes.Add(new Episode
+                        {
+                            Title = $"S{seasonNum:D2}E{epNum:D2} - Episode {epNum}",
+                            SeasonId = season.Id,
+                            IMDBScore = Math.Round(Random.Shared.NextDouble() * 9 + 1, 1),
+                            MetaScore = Random.Shared.Next(1, 101),
+                            EpisodeNumber = epNum,
+                            Duration = Random.Shared.Next(40, 61),
+                            TrailerUrl = trailerUrl
+                        });
+                    }
+
+                    await context.SaveChangesAsync();
+
+                    // Изчисляваме оценки на сезона след добавяне на епизодите
+                    var episodes = context.Episodes.Where(e => e.SeasonId == season.Id).ToList();
+                    season.IMDBScore = Math.Round(episodes.Average(e => e.IMDBScore), 1);
+                    season.MetaScore = Math.Round(episodes.Average(e => e.MetaScore), 1);
+                }
+
+                await context.SaveChangesAsync();
+
+                // Изчисляваме оценки на сериала след добавяне на всички сезони
+                var seasons = context.Seasons.Where(s => s.SeriesId == series.Id).ToList();
+                series.IMDBScore = Math.Round(seasons.Average(s => s.IMDBScore), 1);
+                series.MetaScore = Math.Round(seasons.Average(s => s.MetaScore), 1);
+
+                await context.SaveChangesAsync();
+                added++;
+            }
         }
     }
 }

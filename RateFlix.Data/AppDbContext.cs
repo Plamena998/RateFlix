@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,65 +18,118 @@ namespace RateFlix.Data
         {
 
         }
-        public DbSet<Movie> Movies { get; set; }
-        public DbSet<Director> Directors { get; set; }
-        public DbSet<Genre> Genres { get; set; }
-        public DbSet<MovieGenre> MovieGenres { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<FavoriteMovies> FavoriteMovies { get; set; }
+        public DbSet<Movie> Movies { get; set; } = null!;
+        public DbSet<Series> Series { get; set; } = null!;
+        public DbSet<Season> Seasons { get; set; } = null!;
+        public DbSet<Episode> Episodes { get; set; } = null!;
+        public DbSet<Genre> Genres { get; set; } = null!;
+        public DbSet<ContentGenre> ContentGenres { get; set; } = null!;
+        public DbSet<Director> Directors { get; set; } = null!;
+        public DbSet<Review> Reviews { get; set; } = null!;
+        public DbSet<FavoriteContent> FavoriteContentя { get; set; } = null!;
+        public DbSet<Actor> Actors { get; set; } = null!;
+        public DbSet<ContentActor> ContentActors { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // MovieGenre (Many-to-Many Movie ↔ Genre)
-            modelBuilder.Entity<MovieGenre>()
-                .HasKey(mg => new { mg.MovieId, mg.GenreId });
+            modelBuilder.Entity<Content>().UseTptMappingStrategy();
 
-            modelBuilder.Entity<MovieGenre>()
-                .HasOne(mg => mg.Movie)
-                .WithMany(m => m.MovieGenre)
-                .HasForeignKey(mg => mg.MovieId);
+            modelBuilder.Entity<Movie>().ToTable("Movies");
+            modelBuilder.Entity<Series>().ToTable("Series");
 
-            modelBuilder.Entity<MovieGenre>()
-                .HasOne(mg => mg.Genre)
-                .WithMany(g => g.MovieGenre)
-                .HasForeignKey(mg => mg.GenreId);
+            // ===== Director ↔ Movie (One-to-Many) =====
+            modelBuilder.Entity<Movie>()
+                .HasOne(m => m.Director)
+                .WithMany(d => d.Movies)
+                .HasForeignKey(m => m.DirectorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // FavoriteMovie (Many-to-Many User ↔ Movie)
-            modelBuilder.Entity<FavoriteMovies>()
-                .HasKey(fm => new { fm.UserId, fm.MovieId });
+            // ===== Director ↔ Series (One-to-Many) =====
+            modelBuilder.Entity<Series>()
+                .HasOne(s => s.Director)
+                .WithMany(d => d.Series)
+                .HasForeignKey(s => s.DirectorId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<FavoriteMovies>()
-                .HasOne(fm => fm.User)
-                .WithMany(u => u.FavoriteMovies)
-                .HasForeignKey(fm => fm.UserId);
+            // ===== Content ↔ Genre (Many-to-Many) =====
+            modelBuilder.Entity<ContentGenre>()
+                .HasKey(cg => new { cg.ContentId, cg.GenreId });
 
-            modelBuilder.Entity<FavoriteMovies>()
-                .HasOne(fm => fm.Movie)
-                .WithMany(m => m.FavoriteMovies)
-                .HasForeignKey(fm => fm.MovieId);
+            modelBuilder.Entity<ContentGenre>()
+                .HasOne(cg => cg.Content)
+                .WithMany(c => c.ContentGenres)
+                .HasForeignKey(cg => cg.ContentId);
 
-            // Review (One-to-Many: Movie ↔ Review)
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Movie)
-                .WithMany(m => m.Reviews)
-                .HasForeignKey(r => r.MovieId)
+            modelBuilder.Entity<ContentGenre>()
+                .HasOne(cg => cg.Genre)
+                .WithMany(g => g.ContentGenres)
+                .HasForeignKey(cg => cg.GenreId);
+
+            // ===== Series ↔ Season (One-to-Many) ===== ДОБАВЕНО
+            modelBuilder.Entity<Season>()
+                .HasOne(s => s.Series)
+                .WithMany(sr => sr.Seasons)
+                .HasForeignKey(s => s.SeriesId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Review (One-to-Many: User ↔ Review)
+            // ===== Season ↔ Episodes (One-to-Many) ===== ПРОМЕНЕНО
+            modelBuilder.Entity<Episode>()
+                .HasOne(e => e.Season)
+                .WithMany(s => s.Episodes)
+                .HasForeignKey(e => e.SeasonId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== Review ↔ Content (One-to-Many) =====
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Content)
+                .WithMany(c => c.Reviews)
+                .HasForeignKey(r => r.ContentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ===== Review ↔ AppUser (One-to-Many) =====
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.User)
                 .WithMany(u => u.Reviews)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Movie (Many-to-One: Movie ↔ Director)
-            modelBuilder.Entity<Movie>()
-                .HasOne(m => m.Director)
-                .WithMany(d => d.Movies)
-                .HasForeignKey(m => m.DirectorId)
-                .OnDelete(DeleteBehavior.Restrict); // за да не се изтрият филми при изтриване на режисьор
+            // ===== FavoriteContent ↔ AppUser & Content (Many-to-Many) =====
+            modelBuilder.Entity<FavoriteContent>()
+                .HasKey(f => new { f.UserId, f.ContentId });
+
+            modelBuilder.Entity<FavoriteContent>()
+                .HasOne(f => f.User)
+                .WithMany(u => u.FavoriteMovies)
+                .HasForeignKey(f => f.UserId);
+
+            modelBuilder.Entity<FavoriteContent>()
+                .HasOne(f => f.Content)
+                .WithMany(c => c.FavoriteMovies)
+                .HasForeignKey(f => f.ContentId);
+
+            // ===== Actor ↔ Content (Many-to-Many) =====
+            modelBuilder.Entity<ContentActor>()
+                .HasKey(ca => new { ca.ContentId, ca.ActorId });
+
+            modelBuilder.Entity<ContentActor>()
+                .HasOne(ca => ca.Content)
+                .WithMany(c => c.ContentActors)
+                .HasForeignKey(ca => ca.ContentId);
+
+            modelBuilder.Entity<ContentActor>()
+                .HasOne(ca => ca.Actor)
+                .WithMany(a => a.ContentActors)
+                .HasForeignKey(ca => ca.ActorId);
+
+            // ===== Optional: Indexes for optimization =====
+            modelBuilder.Entity<Review>()
+                .HasIndex(r => new { r.ContentId, r.UserId });
+
+            // ДОБАВЕНО: Index за Season
+            modelBuilder.Entity<Season>()
+                .HasIndex(s => s.SeriesId);
         }
     }
 }

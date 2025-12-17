@@ -12,8 +12,8 @@ using RateFlix.Data;
 namespace RateFlix.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251207192742_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20251217150023_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -158,6 +158,190 @@ namespace RateFlix.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("RateFlix.Data.Models.Actor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("BirthDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Actors");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Content", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("IMDBScore")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("MetaScore")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ReleaseYear")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrailerUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Content");
+
+                    b.UseTptMappingStrategy();
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.ContentActor", b =>
+                {
+                    b.Property<int>("ContentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ActorId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ContentId", "ActorId");
+
+                    b.HasIndex("ActorId");
+
+                    b.ToTable("ContentActors");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Episode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EpisodeNumber")
+                        .HasColumnType("int");
+
+                    b.Property<double>("IMDBScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("MetaScore")
+                        .HasColumnType("float");
+
+                    b.Property<int>("SeasonId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TrailerUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeasonId");
+
+                    b.ToTable("Episodes");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Season", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("IMDBScore")
+                        .HasColumnType("float");
+
+                    b.Property<double>("MetaScore")
+                        .HasColumnType("float");
+
+                    b.Property<int>("ReleaseYear")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeasonNumber")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId");
+
+                    b.ToTable("Seasons");
+                });
+
             modelBuilder.Entity("RateFlix.Infrastructure.AppUser", b =>
                 {
                     b.Property<string>("Id")
@@ -173,7 +357,7 @@ namespace RateFlix.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -232,6 +416,21 @@ namespace RateFlix.Data.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("RateFlix.Infrastructure.ContentGenre", b =>
+                {
+                    b.Property<int>("ContentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("GenreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ContentId", "GenreId");
+
+                    b.HasIndex("GenreId");
+
+                    b.ToTable("ContentGenres");
+                });
+
             modelBuilder.Entity("RateFlix.Infrastructure.Director", b =>
                 {
                     b.Property<int>("Id")
@@ -243,7 +442,7 @@ namespace RateFlix.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
@@ -258,22 +457,22 @@ namespace RateFlix.Data.Migrations
                     b.ToTable("Directors");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.FavoriteMovies", b =>
+            modelBuilder.Entity("RateFlix.Infrastructure.FavoriteContent", b =>
                 {
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("MovieId")
+                    b.Property<int>("ContentId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("DateAdded")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("UserId", "MovieId");
+                    b.HasKey("UserId", "ContentId");
 
-                    b.HasIndex("MovieId");
+                    b.HasIndex("ContentId");
 
-                    b.ToTable("FavoriteMovies");
+                    b.ToTable("FavoriteContentя");
                 });
 
             modelBuilder.Entity("RateFlix.Infrastructure.Genre", b =>
@@ -287,7 +486,7 @@ namespace RateFlix.Data.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
@@ -302,65 +501,6 @@ namespace RateFlix.Data.Migrations
                     b.ToTable("Genres");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.Movie", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("DeletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("DirectorId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("IMDBScore")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("MetaScore")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ReleaseYear")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DirectorId");
-
-                    b.ToTable("Movies");
-                });
-
-            modelBuilder.Entity("RateFlix.Infrastructure.MovieGenre", b =>
-                {
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GenreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MovieId", "GenreId");
-
-                    b.HasIndex("GenreId");
-
-                    b.ToTable("MovieGenres");
-                });
-
             modelBuilder.Entity("RateFlix.Infrastructure.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -373,14 +513,14 @@ namespace RateFlix.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("ContentId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("MovieId")
-                        .HasColumnType("int");
 
                     b.Property<int>("Rating")
                         .HasColumnType("int");
@@ -394,11 +534,41 @@ namespace RateFlix.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MovieId");
-
                     b.HasIndex("UserId");
 
+                    b.HasIndex("ContentId", "UserId");
+
                     b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Movie", b =>
+                {
+                    b.HasBaseType("RateFlix.Data.Models.Content");
+
+                    b.Property<int>("DirectorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.HasIndex("DirectorId");
+
+                    b.ToTable("Movies", (string)null);
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Series", b =>
+                {
+                    b.HasBaseType("RateFlix.Data.Models.Content");
+
+                    b.Property<int>("DirectorId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalSeasons")
+                        .HasColumnType("int");
+
+                    b.HasIndex("DirectorId");
+
+                    b.ToTable("Series", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -452,11 +622,71 @@ namespace RateFlix.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.FavoriteMovies", b =>
+            modelBuilder.Entity("RateFlix.Data.Models.ContentActor", b =>
                 {
-                    b.HasOne("RateFlix.Infrastructure.Movie", "Movie")
+                    b.HasOne("RateFlix.Data.Models.Actor", "Actor")
+                        .WithMany("ContentActors")
+                        .HasForeignKey("ActorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RateFlix.Data.Models.Content", "Content")
+                        .WithMany("ContentActors")
+                        .HasForeignKey("ContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Actor");
+
+                    b.Navigation("Content");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Episode", b =>
+                {
+                    b.HasOne("RateFlix.Data.Models.Season", "Season")
+                        .WithMany("Episodes")
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Season");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Season", b =>
+                {
+                    b.HasOne("RateFlix.Data.Models.Series", "Series")
+                        .WithMany("Seasons")
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Series");
+                });
+
+            modelBuilder.Entity("RateFlix.Infrastructure.ContentGenre", b =>
+                {
+                    b.HasOne("RateFlix.Data.Models.Content", "Content")
+                        .WithMany("ContentGenres")
+                        .HasForeignKey("ContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RateFlix.Infrastructure.Genre", "Genre")
+                        .WithMany("ContentGenres")
+                        .HasForeignKey("GenreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Content");
+
+                    b.Navigation("Genre");
+                });
+
+            modelBuilder.Entity("RateFlix.Infrastructure.FavoriteContent", b =>
+                {
+                    b.HasOne("RateFlix.Data.Models.Content", "Content")
                         .WithMany("FavoriteMovies")
-                        .HasForeignKey("MovieId")
+                        .HasForeignKey("ContentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -466,12 +696,31 @@ namespace RateFlix.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Movie");
+                    b.Navigation("Content");
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.Movie", b =>
+            modelBuilder.Entity("RateFlix.Infrastructure.Review", b =>
+                {
+                    b.HasOne("RateFlix.Data.Models.Content", "Content")
+                        .WithMany("Reviews")
+                        .HasForeignKey("ContentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RateFlix.Infrastructure.AppUser", "User")
+                        .WithMany("Reviews")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Content");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Movie", b =>
                 {
                     b.HasOne("RateFlix.Infrastructure.Director", "Director")
                         .WithMany("Movies")
@@ -479,45 +728,51 @@ namespace RateFlix.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("RateFlix.Data.Models.Content", null)
+                        .WithOne()
+                        .HasForeignKey("RateFlix.Data.Models.Movie", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Director");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.MovieGenre", b =>
+            modelBuilder.Entity("RateFlix.Data.Models.Series", b =>
                 {
-                    b.HasOne("RateFlix.Infrastructure.Genre", "Genre")
-                        .WithMany("MovieGenre")
-                        .HasForeignKey("GenreId")
+                    b.HasOne("RateFlix.Infrastructure.Director", "Director")
+                        .WithMany("Series")
+                        .HasForeignKey("DirectorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RateFlix.Data.Models.Content", null)
+                        .WithOne()
+                        .HasForeignKey("RateFlix.Data.Models.Series", "Id")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RateFlix.Infrastructure.Movie", "Movie")
-                        .WithMany("MovieGenre")
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Genre");
-
-                    b.Navigation("Movie");
+                    b.Navigation("Director");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.Review", b =>
+            modelBuilder.Entity("RateFlix.Data.Models.Actor", b =>
                 {
-                    b.HasOne("RateFlix.Infrastructure.Movie", "Movie")
-                        .WithMany("Reviews")
-                        .HasForeignKey("MovieId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.Navigation("ContentActors");
+                });
 
-                    b.HasOne("RateFlix.Infrastructure.AppUser", "User")
-                        .WithMany("Reviews")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+            modelBuilder.Entity("RateFlix.Data.Models.Content", b =>
+                {
+                    b.Navigation("ContentActors");
 
-                    b.Navigation("Movie");
+                    b.Navigation("ContentGenres");
 
-                    b.Navigation("User");
+                    b.Navigation("FavoriteMovies");
+
+                    b.Navigation("Reviews");
+                });
+
+            modelBuilder.Entity("RateFlix.Data.Models.Season", b =>
+                {
+                    b.Navigation("Episodes");
                 });
 
             modelBuilder.Entity("RateFlix.Infrastructure.AppUser", b =>
@@ -530,20 +785,18 @@ namespace RateFlix.Data.Migrations
             modelBuilder.Entity("RateFlix.Infrastructure.Director", b =>
                 {
                     b.Navigation("Movies");
+
+                    b.Navigation("Series");
                 });
 
             modelBuilder.Entity("RateFlix.Infrastructure.Genre", b =>
                 {
-                    b.Navigation("MovieGenre");
+                    b.Navigation("ContentGenres");
                 });
 
-            modelBuilder.Entity("RateFlix.Infrastructure.Movie", b =>
+            modelBuilder.Entity("RateFlix.Data.Models.Series", b =>
                 {
-                    b.Navigation("FavoriteMovies");
-
-                    b.Navigation("MovieGenre");
-
-                    b.Navigation("Reviews");
+                    b.Navigation("Seasons");
                 });
 #pragma warning restore 612, 618
         }

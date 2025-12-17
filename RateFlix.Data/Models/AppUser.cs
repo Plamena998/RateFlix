@@ -8,8 +8,8 @@ namespace RateFlix.Infrastructure
     {
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
-        public DateTime DeletedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public ICollection<Review> Reviews { get; set; } = new HashSet<Review>();
-        public ICollection<FavoriteMovies> FavoriteMovies { get; set; } = new HashSet<FavoriteMovies>();
+        public ICollection<FavoriteContent> FavoriteMovies { get; set; } = new HashSet<FavoriteContent>();
     }
 }

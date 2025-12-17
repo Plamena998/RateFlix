@@ -12,8 +12,8 @@ namespace RateFlix.Infrastructure
         public int Id { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
-        public DateTime DeletedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
         public string Name { get; set; }
-        public ICollection<MovieGenre> MovieGenre { get; set; }
+        public ICollection<ContentGenre> ContentGenres { get; set; }
     }
 }
