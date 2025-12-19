@@ -42,212 +42,380 @@ public static class DataSeed
             await userManager.AddToRoleAsync(admin, "Administrator");
         }
 
-        // ===== Genres =====
+        // ===== Genres from TMDB =====
         if (!context.Genres.Any())
         {
-            context.Genres.AddRange(
-                new Genre { Name = "Action" },
-                new Genre { Name = "Adventure" },
-                new Genre { Name = "Animation" },
-                new Genre { Name = "Drama" },
-                new Genre { Name = "Comedy" },
-                new Genre { Name = "Crime" },
-                new Genre { Name = "Sci-Fi" },
-                new Genre { Name = "Thriller" }
-            );
+            var movieGenres = await tmdbService.GetMovieGenresAsync();
+            var tvGenres = await tmdbService.GetTvGenresAsync();
+
+            // Обединяваме жанровете (премахваме дубликати по име)
+            var allGenres = movieGenres
+                .Concat(tvGenres)
+                .GroupBy(g => g.Name)
+                .Select(g => g.First())
+                .ToList();
+
+            foreach (var tmdbGenre in allGenres)
+            {
+                context.Genres.Add(new Genre
+                {
+                    Name = tmdbGenre.Name
+                });
+            }
             await context.SaveChangesAsync();
         }
 
         var genres = context.Genres.ToList();
 
-        // ===== Directors =====
-        if (!context.Directors.Any())
-        {
-            context.Directors.AddRange(
-                new Director { Name = "Christopher Nolan" },
-                new Director { Name = "Quentin Tarantino" },
-                new Director { Name = "Steven Spielberg" },
-                new Director { Name = "Martin Scorsese" },
-                new Director { Name = "Denis Villeneuve" }
-            );
-            await context.SaveChangesAsync();
-        }
+        // Речници за актьори и директори (за да избегнем дубликати)
+        var actorCache = new Dictionary<int, Actor>();
+        var directorCache = new Dictionary<int, Director>();
 
-        var directors = context.Directors.ToList();
-
-        // ===== Actors =====
-        if (!context.Actors.Any())
-        {
-            var actors = new List<Actor>
-            {
-                new Actor { Name = "Leonardo DiCaprio", BirthDate = new DateTime(1974,11,11) },
-                new Actor { Name = "Brad Pitt", BirthDate = new DateTime(1963,12,18) },
-                new Actor { Name = "Robert De Niro", BirthDate = new DateTime(1943,8,17) },
-                new Actor { Name = "Morgan Freeman", BirthDate = new DateTime(1937,6,1) },
-                new Actor { Name = "Scarlett Johansson", BirthDate = new DateTime(1984,11,22) },
-                new Actor { Name = "Tom Hanks", BirthDate = new DateTime(1956,7,9) },
-                new Actor { Name = "Natalie Portman", BirthDate = new DateTime(1981,6,9) },
-                new Actor { Name = "Christian Bale", BirthDate = new DateTime(1974,1,30) },
-                new Actor { Name = "Emma Stone", BirthDate = new DateTime(1988,11,6) },
-                new Actor { Name = "Matt Damon", BirthDate = new DateTime(1970,10,8) },
-                new Actor { Name = "Anne Hathaway", BirthDate = new DateTime(1982,11,12) },
-                new Actor { Name = "Samuel L. Jackson", BirthDate = new DateTime(1948,12,21) },
-                new Actor { Name = "Johnny Depp", BirthDate = new DateTime(1963,6,9) },
-                new Actor { Name = "Kate Winslet", BirthDate = new DateTime(1975,10,5) },
-                new Actor { Name = "Hugh Jackman", BirthDate = new DateTime(1968,10,12) },
-                new Actor { Name = "Chris Hemsworth", BirthDate = new DateTime(1983,8,11) },
-                new Actor { Name = "Gal Gadot", BirthDate = new DateTime(1985,4,30) },
-                new Actor { Name = "Ryan Reynolds", BirthDate = new DateTime(1976,10,23) },
-                new Actor { Name = "Harrison Ford", BirthDate = new DateTime(1942,7,13) },
-                new Actor { Name = "Anne-Marie Duff", BirthDate = new DateTime(1970,10,8) }
-            };
-            context.Actors.AddRange(actors);
-            await context.SaveChangesAsync();
-        }
-
-        var actorsList = context.Actors.ToList();
-
-        // ===== Movies =====
+        // ===== Movies from TMDB =====
         if (!context.Movies.Any())
         {
             int page = 1, added = 0;
+
             while (added < 100)
             {
                 var tmdbMovies = await tmdbService.GetMoviesAsync(page);
+
                 foreach (var tmdb in tmdbMovies)
                 {
                     if (added >= 100) break;
                     if (!DateTime.TryParse(tmdb.Release_date, out var releaseDate)) continue;
 
-                    var trailerUrl = await tmdbService.GetMovieTrailerAsync(tmdb.Id)
-                                     ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
-                    var movie = new Movie
+                    try
                     {
-                        Title = tmdb.Title,
-                        Description = tmdb.Overview,
-                        ReleaseYear = releaseDate.Year,
-                        IMDBScore = Math.Round(Random.Shared.NextDouble() * 9 + 1, 1),
-                        MetaScore = Random.Shared.Next(1, 101),
-                        Duration = Random.Shared.Next(80, 181),
-                        DirectorId = directors[added % directors.Count].Id,
-                        ImageUrl = $"https://image.tmdb.org/t/p/w500{tmdb.Poster_path}",
-                        TrailerUrl = trailerUrl,
-                        ContentType = "Movie"
-                    };
+                        var trailerUrl = await tmdbService.GetMovieTrailerAsync(tmdb.Id)
+                                         ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
-                    context.Movies.Add(movie);
-                    await context.SaveChangesAsync();
+                        var credits = await tmdbService.GetMovieCreditsAsync(tmdb.Id);
 
-                    foreach (var genreId in tmdb.Genre_ids.Take(2))
-                    {
-                        var genre = genres.FirstOrDefault(g => g.Id == genreId);
-                        if (genre != null)
-                            context.ContentGenres.Add(new ContentGenre { ContentId = movie.Id, GenreId = genre.Id });
+                        // Вземаме директора от credits
+                        var directorCrew = credits?.Crew?.FirstOrDefault(c => c.Job == "Director");
+                        Director? director = null;
+
+                        if (directorCrew != null)
+                        {
+                            if (!directorCache.ContainsKey(directorCrew.Id))
+                            {
+                                director = new Director
+                                {
+                                    Name = directorCrew.Name,
+                                    ImageUrl = directorCrew.Profile_path != null
+                                        ? $"https://image.tmdb.org/t/p/w500{directorCrew.Profile_path}"
+                                        : "/images/directors/default.jpg"
+                                };
+                                context.Directors.Add(director);
+                                await context.SaveChangesAsync();
+                                directorCache[directorCrew.Id] = director;
+                            }
+                            else
+                            {
+                                director = directorCache[directorCrew.Id];
+                            }
+                        }
+
+                        if (director == null) continue; // Пропускаме филми без директор
+
+                        var movie = new Movie
+                        {
+                            Title = tmdb.Title,
+                            Description = tmdb.Overview,
+                            ReleaseYear = releaseDate.Year,
+                            IMDBScore = Math.Round((double)tmdb.Vote_average, 1),
+                            MetaScore = Random.Shared.Next(1, 101),
+                            Duration = Random.Shared.Next(80, 181),
+                            DirectorId = director.Id,
+                            ImageUrl = $"https://image.tmdb.org/t/p/w500{tmdb.Poster_path}",
+                            TrailerUrl = trailerUrl,
+                            ContentType = "Movie"
+                        };
+
+                        context.Movies.Add(movie);
+                        await context.SaveChangesAsync();
+
+                        // Добавяме жанрове
+                        foreach (var genreId in tmdb.Genre_ids.Take(3))
+                        {
+                            var genre = genres.FirstOrDefault(g => g.Name == GetGenreName(genreId));
+                            if (genre != null)
+                            {
+                                context.ContentGenres.Add(new ContentGenre
+                                {
+                                    ContentId = movie.Id,
+                                    GenreId = genre.Id
+                                });
+                            }
+                        }
+
+                        // Добавяме актьори (топ 5)
+                        if (credits?.Cast != null)
+                        {
+                            foreach (var tmdbActor in credits.Cast.Take(5))
+                            {
+                                if (!actorCache.ContainsKey(tmdbActor.Id))
+                                {
+                                    var personDetails = await tmdbService.GetPersonDetailsAsync(tmdbActor.Id);
+
+                                    var actor = new Actor
+                                    {
+                                        Name = tmdbActor.Name,
+                                        BirthDate = DateTime.TryParse(personDetails?.Birthday, out var bday)
+                                            ? bday
+                                            : new DateTime(1980, 1, 1),
+                                        ImageUrl = tmdbActor.Profile_path != null
+                                            ? $"https://image.tmdb.org/t/p/w500{tmdbActor.Profile_path}"
+                                            : "/images/actors/default.jpg"
+                                    };
+                                    context.Actors.Add(actor);
+                                    await context.SaveChangesAsync();
+                                    actorCache[tmdbActor.Id] = actor;
+                                }
+
+                                context.ContentActors.Add(new ContentActor
+                                {
+                                    ContentId = movie.Id,
+                                    ActorId = actorCache[tmdbActor.Id].Id
+                                });
+                            }
+                        }
+
+                        await context.SaveChangesAsync();
+                        added++;
+
+                        // Rate limiting - пауза между заявки
+                        await Task.Delay(250);
                     }
-
-                    foreach (var actor in actorsList.OrderBy(a => Guid.NewGuid()).Take(3))
-                        context.ContentActors.Add(new ContentActor { ContentId = movie.Id, ActorId = actor.Id });
-
-                    added++;
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing movie {tmdb.Title}: {ex.Message}");
+                        continue;
+                    }
                 }
                 page++;
             }
-            await context.SaveChangesAsync();
         }
 
-        // ===== Series with Seasons and Episodes =====
+        // ===== Series with Real Seasons and Episodes =====
         if (!context.Series.Any())
         {
             int page = 1, added = 0;
-            var tmdbSeries = await tmdbService.GetSeriesAsync(page);
 
-            foreach (var tmdb in tmdbSeries.Take(30))
+            while (added < 30)
             {
-                if (!DateTime.TryParse(tmdb.First_air_date, out var airDate)) continue;
+                var tmdbSeriesList = await tmdbService.GetSeriesAsync(page);
 
-                var trailerUrl = await tmdbService.GetSeriesTrailerAsync(tmdb.Id)
-                                 ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-
-                int totalSeasons = Random.Shared.Next(1, 6);
-
-                var series = new Series
+                foreach (var tmdb in tmdbSeriesList)
                 {
-                    Title = tmdb.Name,
-                    Description = tmdb.Overview,
-                    ReleaseYear = airDate.Year,
-                    IMDBScore = 0, // Ще се изчисли след епизодите
-                    MetaScore = 0, // Ще се изчисли след епизодите
-                    DirectorId = directors[added % directors.Count].Id,
-                    ImageUrl = $"https://image.tmdb.org/t/p/w500{tmdb.Poster_path}",
-                    TrailerUrl = trailerUrl,
-                    ContentType = "Series",
-                    TotalSeasons = totalSeasons
-                };
+                    if (added >= 30) break;
+                    if (!DateTime.TryParse(tmdb.First_air_date, out var airDate)) continue;
 
-                context.Series.Add(series);
-                await context.SaveChangesAsync();
-
-                foreach (var genreId in tmdb.Genre_ids.Take(2))
-                {
-                    var genre = genres.FirstOrDefault(g => g.Id == genreId);
-                    if (genre != null)
-                        context.ContentGenres.Add(new ContentGenre { ContentId = series.Id, GenreId = genre.Id });
-                }
-
-                foreach (var actor in actorsList.OrderBy(a => Guid.NewGuid()).Take(3))
-                    context.ContentActors.Add(new ContentActor { ContentId = series.Id, ActorId = actor.Id });
-
-                // ===== Създаваме сезони и епизоди =====
-                for (int seasonNum = 1; seasonNum <= totalSeasons; seasonNum++)
-                {
-                    var season = new Season
+                    try
                     {
-                        SeasonNumber = seasonNum,
-                        SeriesId = series.Id,
-                        ReleaseYear = airDate.Year + (seasonNum - 1),
-                        Description = $"Season {seasonNum} of {series.Title}",
-                        IMDBScore = 0, // Ще се изчисли след епизодите
-                        MetaScore = 0  // Ще се изчисли след епизодите
-                    };
+                        var seriesDetails = await tmdbService.GetSeriesDetailsAsync(tmdb.Id);
+                        if (seriesDetails == null) continue;
 
-                    context.Seasons.Add(season);
-                    await context.SaveChangesAsync();
+                        var trailerUrl = await tmdbService.GetSeriesTrailerAsync(tmdb.Id)
+                                         ?? "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
 
-                    int episodesCount = Random.Shared.Next(6, 13);
+                        var credits = await tmdbService.GetSeriesCreditsAsync(tmdb.Id);
 
-                    for (int epNum = 1; epNum <= episodesCount; epNum++)
-                    {
-                        context.Episodes.Add(new Episode
+                        // Вземаме creator/director
+                        Director? director = null;
+                        var creator = seriesDetails.Created_by?.FirstOrDefault();
+
+                        if (creator != null)
                         {
-                            Title = $"S{seasonNum:D2}E{epNum:D2} - Episode {epNum}",
-                            SeasonId = season.Id,
-                            IMDBScore = Math.Round(Random.Shared.NextDouble() * 9 + 1, 1),
-                            MetaScore = Random.Shared.Next(1, 101),
-                            EpisodeNumber = epNum,
-                            Duration = Random.Shared.Next(40, 61),
-                            TrailerUrl = trailerUrl
-                        });
+                            if (!directorCache.ContainsKey(creator.Id))
+                            {
+                                director = new Director
+                                {
+                                    Name = creator.Name,
+                                    ImageUrl = creator.Profile_path != null
+                                        ? $"https://image.tmdb.org/t/p/w500{creator.Profile_path}"
+                                        : "/images/directors/default.jpg"
+                                };
+                                context.Directors.Add(director);
+                                await context.SaveChangesAsync();
+                                directorCache[creator.Id] = director;
+                            }
+                            else
+                            {
+                                director = directorCache[creator.Id];
+                            }
+                        }
+
+                        if (director == null) continue;
+
+                        var series = new Series
+                        {
+                            Title = seriesDetails.Name,
+                            Description = seriesDetails.Overview,
+                            ReleaseYear = airDate.Year,
+                            IMDBScore = 0, // Ще се изчисли от сезоните
+                            MetaScore = 0,
+                            DirectorId = director.Id,
+                            ImageUrl = $"https://image.tmdb.org/t/p/w500{seriesDetails.Poster_path}",
+                            TrailerUrl = trailerUrl,
+                            ContentType = "Series",
+                            TotalSeasons = seriesDetails.Number_of_seasons
+                        };
+
+                        context.Series.Add(series);
+                        await context.SaveChangesAsync();
+
+                        // Добавяме жанрове
+                        foreach (var genre in seriesDetails.Genres.Take(3))
+                        {
+                            var dbGenre = genres.FirstOrDefault(g => g.Name == genre.Name);
+                            if (dbGenre != null)
+                            {
+                                context.ContentGenres.Add(new ContentGenre
+                                {
+                                    ContentId = series.Id,
+                                    GenreId = dbGenre.Id
+                                });
+                            }
+                        }
+
+                        // Добавяме актьори (топ 5)
+                        if (credits?.Cast != null)
+                        {
+                            foreach (var tmdbActor in credits.Cast.Take(5))
+                            {
+                                if (!actorCache.ContainsKey(tmdbActor.Id))
+                                {
+                                    var personDetails = await tmdbService.GetPersonDetailsAsync(tmdbActor.Id);
+
+                                    var actor = new Actor
+                                    {
+                                        Name = tmdbActor.Name,
+                                        BirthDate = DateTime.TryParse(personDetails?.Birthday, out var bday)
+                                            ? bday
+                                            : new DateTime(1980, 1, 1),
+                                        ImageUrl = tmdbActor.Profile_path != null
+                                            ? $"https://image.tmdb.org/t/p/w500{tmdbActor.Profile_path}"
+                                            : "/images/actors/default.jpg"
+                                    };
+                                    context.Actors.Add(actor);
+                                    await context.SaveChangesAsync();
+                                    actorCache[tmdbActor.Id] = actor;
+                                }
+
+                                context.ContentActors.Add(new ContentActor
+                                {
+                                    ContentId = series.Id,
+                                    ActorId = actorCache[tmdbActor.Id].Id
+                                });
+                            }
+                        }
+
+                        await context.SaveChangesAsync();
+
+                        // ===== Зареждаме реални сезони и епизоди =====
+                        var seasonsToLoad = Math.Min(seriesDetails.Number_of_seasons, 3); // Зареждаме max 3 сезона
+
+                        for (int seasonNum = 1; seasonNum <= seasonsToLoad; seasonNum++)
+                        {
+                            var tmdbSeason = await tmdbService.GetSeasonDetailsAsync(tmdb.Id, seasonNum);
+                            if (tmdbSeason == null) continue;
+
+                            var season = new Season
+                            {
+                                SeasonNumber = seasonNum,
+                                SeriesId = series.Id,
+                                ReleaseYear = DateTime.TryParse(tmdbSeason.Air_date, out var sAirDate)
+                                    ? sAirDate.Year
+                                    : airDate.Year + (seasonNum - 1),
+                                Description = tmdbSeason.Overview,
+                                IMDBScore = 0,
+                                MetaScore = 0
+                            };
+
+                            context.Seasons.Add(season);
+                            await context.SaveChangesAsync();
+
+                            // Добавяме епизоди за сезона
+                            foreach (var tmdbEpisode in tmdbSeason.Episodes)
+                            {
+                                context.Episodes.Add(new Episode
+                                {
+                                    Title = tmdbEpisode.Name,
+                                    SeasonId = season.Id,
+                                    IMDBScore = Math.Round(tmdbEpisode.Vote_average, 1),
+                                    MetaScore = Random.Shared.Next(1, 101),
+                                    EpisodeNumber = tmdbEpisode.Episode_number,
+                                    Duration = tmdbEpisode.Runtime > 0 ? tmdbEpisode.Runtime : 45,
+                                    TrailerUrl = trailerUrl
+                                });
+                            }
+
+                            await context.SaveChangesAsync();
+
+                            // Изчисляваме оценки на сезона
+                            var episodes = context.Episodes.Where(e => e.SeasonId == season.Id).ToList();
+                            if (episodes.Any())
+                            {
+                                season.IMDBScore = Math.Round(episodes.Average(e => e.IMDBScore), 1);
+                                season.MetaScore = Math.Round(episodes.Average(e => e.MetaScore), 1);
+                            }
+
+                            await Task.Delay(250); // Rate limiting
+                        }
+
+                        await context.SaveChangesAsync();
+
+                        // Изчисляваме оценки на сериала
+                        var seasons = context.Seasons.Where(s => s.SeriesId == series.Id).ToList();
+                        if (seasons.Any())
+                        {
+                            series.IMDBScore = Math.Round(seasons.Average(s => s.IMDBScore), 1);
+                            series.MetaScore = Math.Round(seasons.Average(s => s.MetaScore), 1);
+                        }
+
+                        await context.SaveChangesAsync();
+                        added++;
+
+                        await Task.Delay(500); // Rate limiting between series
                     }
-
-                    await context.SaveChangesAsync();
-
-                    // Изчисляваме оценки на сезона след добавяне на епизодите
-                    var episodes = context.Episodes.Where(e => e.SeasonId == season.Id).ToList();
-                    season.IMDBScore = Math.Round(episodes.Average(e => e.IMDBScore), 1);
-                    season.MetaScore = Math.Round(episodes.Average(e => e.MetaScore), 1);
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error processing series {tmdb.Name}: {ex.Message}");
+                        continue;
+                    }
                 }
-
-                await context.SaveChangesAsync();
-
-                // Изчисляваме оценки на сериала след добавяне на всички сезони
-                var seasons = context.Seasons.Where(s => s.SeriesId == series.Id).ToList();
-                series.IMDBScore = Math.Round(seasons.Average(s => s.IMDBScore), 1);
-                series.MetaScore = Math.Round(seasons.Average(s => s.MetaScore), 1);
-
-                await context.SaveChangesAsync();
-                added++;
+                page++;
             }
         }
+    }
+
+    // Helper метод за мапване на genre ID към име (TMDB genre IDs)
+    private static string GetGenreName(int genreId)
+    {
+        return genreId switch
+        {
+            28 => "Action",
+            12 => "Adventure",
+            16 => "Animation",
+            35 => "Comedy",
+            80 => "Crime",
+            99 => "Documentary",
+            18 => "Drama",
+            10751 => "Family",
+            14 => "Fantasy",
+            36 => "History",
+            27 => "Horror",
+            10402 => "Music",
+            9648 => "Mystery",
+            10749 => "Romance",
+            878 => "Sci-Fi",
+            10770 => "TV Movie",
+            53 => "Thriller",
+            10752 => "War",
+            37 => "Western",
+            _ => "Unknown"
+        };
     }
 }

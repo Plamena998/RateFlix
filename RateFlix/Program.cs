@@ -46,6 +46,7 @@ using (var scope = app.Services.CreateScope())
     // Seed data
     await DataSeed.Initialize(services);
 }
+Console.WriteLine("gotovo");
 
 // ===== Configure middleware =====
 if (!app.Environment.IsDevelopment())

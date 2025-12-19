@@ -17,6 +17,7 @@ namespace RateFlix.Infrastructure
         public string Name { get; set; }
         public ICollection<Movie> Movies { get; set; }
         public ICollection<Series> Series { get; set; }
+        public string? ImageUrl { get; set; }  
 
     }
 }

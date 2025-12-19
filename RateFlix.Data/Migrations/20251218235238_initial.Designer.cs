@@ -12,7 +12,7 @@ using RateFlix.Data;
 namespace RateFlix.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251217150023_initial")]
+    [Migration("20251218235238_initial")]
     partial class initial
     {
         /// <inheritdoc />
@@ -174,6 +174,9 @@ namespace RateFlix.Data.Migrations
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -444,6 +447,9 @@ namespace RateFlix.Data.Migrations
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()

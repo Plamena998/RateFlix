@@ -7,4 +7,5 @@
     public string First_air_date { get; set; }
     public List<int> Genre_ids { get; set; }
     public double Vote_average { get; set; }
+    public int Number_of_seasons { get; set; }
 }
