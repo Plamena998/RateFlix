@@ -1,85 +1,64 @@
-﻿@using Microsoft.AspNetCore.Identity
-@using RateFlix.Infrastructure
-@inject SignInManager<AppUser> SignInManager
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - RateFlix</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome (икони) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/RateFlix.styles.css" asp-append-version="true" />
 </head>
-<body>
+<body class="bg-gray-900 text-white">
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">RateFlix</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-
-                    @{
-                        var path = Context.Request.Path.Value?.ToLower();
-                        var isAuthPage = path != null && path.Contains("/identity/account");
-                    }
-
-                    <ul class="navbar-nav ms-auto">
-                        @if (SignInManager.IsSignedIn(User))
+        <nav class="bg-gray-800 shadow-lg">
+            <div class="container mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="text-2xl font-bold text-red-500">
+                        <a asp-controller="Home" asp-action="Index">RateFlix</a>
+                    </div>
+                    <div class="hidden md:flex space-x-8">
+                        <a asp-controller="Movies" asp-action="Index" class="hover:text-red-500 transition">Movies</a>
+                        <a asp-controller="Series" asp-action="Index" class="hover:text-red-500 transition">Series</a>
+                        <a asp-controller="Actors" asp-action="Index" class="hover:text-red-500 transition">Actors</a>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        @if (User.Identity.IsAuthenticated)
                         {
-                            <li class="nav-item me-3">
-                                <span class="navbar-text">
-                                    Здравей, @User.Identity.Name!
-                                </span>
-                            </li>
-                            <li class="nav-item">
-                                <form class="d-inline" asp-area="Identity" asp-page="/Account/Logout" method="post">
-                                    <button type="submit" class="btn btn-link nav-link p-0">Logout</button>
-                                </form>
-                            </li>
+                            <span class="text-gray-300">Hello, @User.Identity.Name</span>
+                            <form asp-area="Identity" asp-page="/Account/Logout" method="post" class="inline">
+                                <button type="submit" class="hover:text-red-500 transition">Logout</button>
+                            </form>
                         }
-                        else if (!isAuthPage) 
+                        else
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                            </li>
+                            <a asp-area="Identity" asp-page="/Account/Login" class="hover:text-red-500">Login</a>
+                            <a asp-area="Identity" asp-page="/Account/Register" class="bg-red-500 px-4 py-2 rounded hover:bg-red-600 transition">Sign Up</a>
                         }
-                    </ul>
+                    </div>
                 </div>
             </div>
         </nav>
     </header>
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+    <main class="min-h-screen">
+        @RenderBody()
+    </main>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - RateFlix - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="bg-gray-800 mt-12 py-8">
+        <div class="container mx-auto px-6 text-center text-gray-400">
+            <p>&copy; 2024 RateFlix. All rights reserved.</p>
         </div>
     </footer>
-
+    <div id="contentModalContainer"></div>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/modals.js" asp-append-version="true"></script>
+
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

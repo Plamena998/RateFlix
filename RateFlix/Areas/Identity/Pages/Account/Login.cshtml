@@ -3,78 +3,65 @@
 
 @{
     ViewData["Title"] = "Log in";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Използва твоя Layout!
 }
 
-<h1>@ViewData["Title"]</h1>
-<div class="row">
-    <div class="col-md-4">
-        <section>
+<div class="min-h-screen bg-gray-900 flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full space-y-8">
+
+        <div class="text-center">
+            <a asp-controller="Home" asp-action="Index" class="text-4xl font-bold text-red-500">
+                RateFlix
+            </a>
+            <h2 class="mt-6 text-3xl font-bold text-white">Welcome Back</h2>
+            <p class="mt-2 text-gray-400">Sign in to your account</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-lg shadow-xl p-8">
             <form id="account" method="post">
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
-                    <label asp-for="Input.Email" class="form-label">Email</label>
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                <div asp-validation-summary="ModelOnly" class="text-red-500 mb-4"></div>
+
+                <div class="mb-6">
+                    <label asp-for="Input.Email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
+                    <input asp-for="Input.Email" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" autocomplete="username" />
+                    <span asp-validation-for="Input.Email" class="text-red-500 text-sm"></span>
                 </div>
-                <div class="form-floating mb-3">
-                    <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label asp-for="Input.Password" class="form-label">Password</label>
-                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+
+                <div class="mb-6">
+                    <label asp-for="Input.Password" class="block text-sm font-medium text-gray-300 mb-2">Password</label>
+                    <input asp-for="Input.Password" type="password" class="w-full px-4 py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" autocomplete="current-password" />
+                    <span asp-validation-for="Input.Password" class="text-red-500 text-sm"></span>
                 </div>
-                <div class="checkbox mb-3">
-                    <label asp-for="Input.RememberMe" class="form-label">
-                        <input class="form-check-input" asp-for="Input.RememberMe" />
-                        @Html.DisplayNameFor(m => m.Input.RememberMe)
-                    </label>
+
+                <div class="flex items-center mb-6">
+                    <input asp-for="Input.RememberMe" type="checkbox" class="w-4 h-4 text-red-500 bg-gray-700 border-gray-600 rounded" />
+                    <label asp-for="Input.RememberMe" class="ml-2 text-sm text-gray-300">Remember me</label>
                 </div>
-                <div>
-                    <button id="login-submit" type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <div>
-                    <p>
-                        <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a id="resend-confirmation" asp-page="./ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
+
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg transition">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Log in
+                </button>
             </form>
-        </section>
-    </div>
-    <div class="col-md-6 col-md-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            @{
-                if ((Model.ExternalLogins?.Count ?? 0) == 0)
-                {
-                    <div>
-                        <p>
-                            There are no external authentication services configured. See this <a href="https://go.microsoft.com/fwlink/?LinkID=532715">article
-                            about setting up this ASP.NET application to support logging in via external services</a>.
-                        </p>
-                    </div>
-                }
-                else
-                {
-                    <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post" class="form-horizontal">
-                        <div>
-                            <p>
-                                @foreach (var provider in Model.ExternalLogins!)
-                                {
-                                    <button type="submit" class="btn btn-primary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">@provider.DisplayName</button>
-                                }
-                            </p>
-                        </div>
-                    </form>
-                }
-            }
-        </section>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-700"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-gray-800 text-gray-400">Don't have an account?</span>
+                </div>
+            </div>
+
+            <a asp-area="Identity" asp-page="/Account/Register" class="block w-full text-center bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 rounded-lg transition">
+                Create Account
+            </a>
+        </div>
+
+        <div class="text-center">
+            <a asp-controller="Home" asp-action="Index" class="text-gray-400 hover:text-white transition">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Home
+            </a>
+        </div>
     </div>
 </div>
 

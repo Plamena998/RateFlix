@@ -1,0 +1,25 @@
+﻿<section class="relative bg-gradient-to-r from-gray-900 via-red-900 to-gray-900 py-20">
+    <div class="container mx-auto px-6">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-pink-500">
+                Welcome to RateFlix
+            </h1>
+            <p class="text-xl text-gray-300 mb-8">
+                Discover, Rate, and Review Your Favorite Movies & Series
+            </p>
+
+            <div class="max-w-2xl mx-auto relative">
+                <input type="text"
+                       id="searchInput"
+                       placeholder="Search movies, series, actors..."
+                       class="w-full px-6 py-4 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500" />
+                <button class="absolute right-2 top-2 bg-red-500 px-6 py-2 rounded-full hover:bg-red-600 transition">
+                    <i class="fas fa-search"></i>
+                </button>
+
+                <div id="searchResults" class="hidden absolute w-full mt-2 bg-gray-800 rounded-lg shadow-2xl max-h-96 overflow-y-auto z-50">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

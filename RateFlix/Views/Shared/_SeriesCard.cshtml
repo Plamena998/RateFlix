@@ -1,0 +1,43 @@
+﻿@model RateFlix.Data.Models.Series
+
+<div class="series-card group cursor-pointer transform transition duration-300 hover:scale-105"
+     onclick="loadContentModal(@Model.Id, 'Series')">
+
+    <div class="relative overflow-hidden rounded-lg shadow-lg">
+
+        <img src="@Model.ImageUrl"
+             alt="@Model.Title"
+             class="w-full h-80 object-cover group-hover:opacity-75 transition"
+             onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+
+        <!-- Rating -->
+        <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
+            <i class="fas fa-star"></i> @Model.IMDBScore
+        </div>
+
+        <!-- Seasons -->
+        <div class="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded text-xs font-bold text-white">
+            @Model.TotalSeasons Seasons
+        </div>
+
+        <!-- Bottom overlay -->
+        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+            <h3 class="font-bold text-lg truncate text-white">@Model.Title</h3>
+            <p class="text-gray-300 text-sm">@Model.ReleaseYear</p>
+
+            <!-- Genres (NULL SAFE) -->
+            @if (Model.ContentGenres != null && Model.ContentGenres.Any())
+            {
+                <div class="flex flex-wrap gap-1 mt-2">
+                    @foreach (var genre in Model.ContentGenres.Take(2))
+                    {
+                        <span class="bg-red-500 px-2 py-0.5 rounded text-xs text-white">
+                            @genre.Genre.Name
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+
+    </div>
+</div>

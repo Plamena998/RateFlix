@@ -1,0 +1,221 @@
+﻿@model RateFlix.Data.Models.Content
+
+@{
+    var contentType = Model is RateFlix.Data.Models.Movie ? "Movie" :
+                      Model is RateFlix.Data.Models.Series ? "Series" : "Content";
+    var isSeries = Model is RateFlix.Data.Models.Series;
+    var isMovie = Model is RateFlix.Data.Models.Movie;
+}
+
+<!-- Modal Overlay -->
+<div id="contentModal-@Model.Id"
+     class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4"
+     onclick="closeContentModal(@Model.Id)">
+
+    <div class="bg-gray-900 rounded-xl max-w-6xl w-full max-h-[95vh] overflow-y-auto shadow-2xl"
+         onclick="event.stopPropagation()">
+
+        <!-- Close Button -->
+        <button onclick="closeContentModal(@Model.Id)"
+                class="absolute top-6 right-6 bg-black bg-opacity-60 hover:bg-opacity-80 text-white
+                       rounded-full w-12 h-12 flex items-center justify-center text-2xl z-10
+                       transition-all hover:scale-110">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Hero Section -->
+        <div class="relative h-[400px] overflow-hidden rounded-t-xl">
+            <img src="@Model.ImageUrl"
+                 alt="@Model.Title"
+                 class="w-full h-full object-cover"
+                 onerror="this.src='https://via.placeholder.com/1200x400?text=No+Image'" />
+            <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent"></div>
+
+            <div class="absolute bottom-0 left-0 right-0 p-8">
+                <h2 class="text-5xl font-bold text-white mb-4">@Model.Title</h2>
+
+                <div class="flex items-center gap-4 flex-wrap">
+                    <span id="averageRating-@Model.Id" class="bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold text-lg imdb-score">
+                        <i class="fas fa-star"></i> @Model.IMDBScore
+                    </span>
+                    <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
+                        @Model.ReleaseYear
+                    </span>
+                    @if (Model is RateFlix.Data.Models.Movie movie)
+                    {
+                        <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
+                            @movie.Duration min
+                        </span>
+                    }
+                    @if (isSeries)
+                    {
+                        var series = Model as RateFlix.Data.Models.Series;
+                        <span class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">
+                            @series.TotalSeasons Seasons
+                        </span>
+                    }
+                </div>
+
+                <div class="flex flex-wrap gap-2 mt-4">
+                    @foreach (var contentGenre in Model.ContentGenres.Take(4))
+                    {
+                        <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                            @contentGenre.Genre.Name
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-8">
+
+            <!-- Overview -->
+            <div class="mb-8">
+                <h3 class="text-2xl font-bold text-white mb-4">Overview</h3>
+                <p class="text-gray-300 text-lg">@Model.Description</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8 mb-8">
+
+                @if (!string.IsNullOrEmpty(Model.TrailerUrl))
+                {
+                    <div>
+                        <h3 class="text-2xl font-bold text-white mb-4">Trailer</h3>
+                        <div class="aspect-video bg-black rounded-lg overflow-hidden">
+                            <iframe src="@Model.TrailerUrl.Replace("watch?v=", "embed/")"
+                                    class="w-full h-full"
+                                    allowfullscreen></iframe>
+                        </div>
+                    </div>
+                }
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3">
+                            @(Model is RateFlix.Data.Models.Movie ? "Director" : "Creator")
+                        </h3>
+
+                        @if (Model is RateFlix.Data.Models.Movie m)
+                        {
+                            <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
+                                <img src="@m.Director.ImageUrl"
+                                     class="w-16 h-16 rounded-full object-cover" />
+                                <span class="text-white font-semibold">@m.Director.Name</span>
+                            </div>
+                        }
+
+                        @if (isSeries)
+                        {
+                            var s = Model as RateFlix.Data.Models.Series;
+                            <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
+                                <img src="@s.Director.ImageUrl"
+                                     class="w-16 h-16 rounded-full object-cover" />
+                                <span class="text-white font-semibold">@s.Director.Name</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-3">Top Cast</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            @foreach (var actor in Model.ContentActors.Take(4))
+                            {
+                                <div class="flex items-center gap-2 bg-gray-800 p-2 rounded-lg">
+                                    <img src="@actor.Actor.ImageUrl"
+                                         class="w-12 h-12 rounded-full object-cover" />
+                                    <span class="text-gray-300 text-sm">@actor.Actor.Name</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⭐ RATING SECTION -->
+            @if(isMovie)
+            {
+            <div class="border-t border-gray-800 pt-8">
+                <div class="bg-gray-800 rounded-xl p-8">
+
+                    <h3 class="text-3xl font-bold text-white mb-6 text-center">
+                        Rate this @contentType
+                    </h3>
+
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        <div class="text-center">
+
+                            <!-- Animated Stars -->
+                            <div class="flex justify-center gap-2 mb-6" id="starRating-@Model.Id">
+                                @for (int i = 1; i <= 10; i++)
+                                {
+                                    <button type="button"
+                                            class="star-btn text-5xl text-gray-500 transition-colors duration-300 transform hover:scale-125"
+                                            data-rating="@i"
+                                            onmouseover="highlightStars(@Model.Id, @i)"
+                                            onmouseout="resetStars(@Model.Id)"
+                                            onclick="rateContent(@Model.Id, @i)">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                }
+                            </div>
+
+                            <p id="selectedRating-@Model.Id"
+                               class="text-yellow-400 font-bold text-2xl mb-6 hidden"></p>
+
+                            <!--  Review Input + Submit -->
+                            <div class="max-w-3xl mx-auto">
+                                <div class="flex flex-col sm:flex-row gap-3">
+
+                                    <textarea id="reviewText-@Model.Id"
+                                          rows="2"
+                                          placeholder="Write your review (optional)..."
+                                          class="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg resize-none
+                                                     focus:outline-none focus:ring-2 focus:ring-red-500">
+                                    </textarea>
+
+                                    <button onclick="submitReview(@Model.Id, '@contentType')"
+                                            class="shrink-0 bg-red-500 hover:bg-red-600 text-white
+                                                                       px-6 py-3 rounded-lg font-bold transition
+                                                                       flex items-center justify-center">
+                                        <i class="fas fa-paper-plane mr-2"></i>
+                                        Submit
+                                    </button>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-gray-400">
+                            <p class="mb-4">Sign in to rate this @contentType.ToLower()</p>
+                            <a asp-area="Identity"
+                               asp-page="/Account/Login"
+                               class="inline-block bg-red-500 hover:bg-red-600 text-white
+                                                          px-8 py-3 rounded-lg font-bold transition">
+                                Login to Rate
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+            }
+
+            @if (isSeries)
+            {
+                <div class="mt-8 text-center">
+                    <button onclick="loadSeasonsModal(@Model.Id)"
+                            class="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600
+                       text-white px-10 py-4 rounded-lg transition-all font-bold text-lg
+                       shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-tv mr-2"></i>
+                        View All Seasons & Episodes
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,23 @@
+﻿@model List<RateFlix.Data.Models.Movie>
+
+
+<section class="py-16">
+    <div class="container mx-auto px-6">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-bold">
+                <i class="fas fa-fire text-red-500 mr-2"></i>
+                Top Rated Movies
+            </h2>
+            <a asp-controller="Movies" asp-action="Index" class="text-red-500 hover:text-red-400 transition">
+                View All <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6" id="topMoviesGrid">
+            @foreach (var movie in Model)
+            {
+                @await Html.PartialAsync("_MovieCard", movie)
+            }
+        </div>
+    </div>
+</section>

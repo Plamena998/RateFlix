@@ -1,0 +1,255 @@
+﻿@model RateFlix.Models.ViewModels.SeriesIndexViewModel
+@{
+    ViewData["Title"] = "Series";
+}
+
+<div class="bg-gray-900 min-h-screen py-12">
+    <div class="container mx-auto px-6">
+
+        <!-- Page Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">
+                <i class="fas fa-tv text-red-500 mr-3"></i>All Series
+            </h1>
+            <p class="text-gray-400">Browse @Model.TotalSeries series</p>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-gray-800 rounded-lg p-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Search</label>
+                    <input type="text" id="searchInput" value="@Model.Search" placeholder="Search series..."
+                           class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Genre</label>
+                    <select id="genreFilter" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="">All Genres</option>
+                        @foreach (var genre in Model.Genres)
+                        {
+                            <option value="@genre.Id" selected="@(Model.SelectedGenreId == genre.Id)">@genre.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Year</label>
+                    <select id="yearFilter" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="">All Years</option>
+                        @for (int year = DateTime.Now.Year; year >= 1950; year--)
+                        {
+                            <option value="@year" selected="@(Model.SelectedYear == year)">@year</option>
+                        }
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Sort By</label>
+                    <select id="sortByFilter" class="w-full px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="rating_desc" selected="@(Model.SortBy == "rating_desc" || string.IsNullOrEmpty(Model.SortBy))">Highest Rated</option>
+                        <option value="rating_asc" selected="@(Model.SortBy == "rating_asc")">Lowest Rated</option>
+                        <option value="year_desc" selected="@(Model.SortBy == "year_desc")">Newest First</option>
+                        <option value="year_asc" selected="@(Model.SortBy == "year_asc")">Oldest First</option>
+                        <option value="title" selected="@(Model.SortBy == "title")">Title (A-Z)</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="mt-4 text-right">
+                <button id="resetFilters" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition">
+                    <i class="fas fa-redo mr-2"></i>Reset Filters
+                </button>
+            </div>
+        </div>
+
+        <!-- Series Grid -->
+        <div id="seriesGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
+            @foreach (var series in Model.Series)
+            {
+                @await Html.PartialAsync("_SeriesCard", series)
+            }
+        </div>
+        <!-- Modal Container -->
+        <div id="contentModalContainer"></div>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+            <p class="text-gray-400 mt-4">Loading series...</p>
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer" class="flex justify-center items-center space-x-2 mb-4">
+            @if (Model.CurrentPage > 1)
+            {
+                <button class="pagination-btn px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-page="@(Model.CurrentPage - 1)">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+            }
+
+            @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+            {
+                <button class="pagination-btn px-4 py-2 rounded-lg transition @(i == Model.CurrentPage ? "bg-red-500 text-white" : "bg-gray-800 hover:bg-gray-700 text-white")" data-page="@i">
+                    @i
+                </button>
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <button class="pagination-btn px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-page="@(Model.CurrentPage + 1)">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            }
+        </div>
+
+        <div id="pageInfo" class="text-center text-gray-400">
+            Page @Model.CurrentPage of @Model.TotalPages
+        </div>
+
+    </div>
+</div>
+
+<!-- Content Modal Container -->
+<div id="contentModalContainer"></div>
+
+<!-- Seasons Modal Container -->
+<div id="seasonsModalContainer"></div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            let isLoading = false;
+
+            function updatePagination(page, total) {
+                const container = $('#paginationContainer');
+                container.empty();
+
+                if (page > 1) {
+                    container.append(`<button class="pagination-btn px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-page="${page - 1}"><i class="fas fa-chevron-left"></i> Previous</button>`);
+                }
+
+                const start = Math.max(1, page - 2);
+                const end = Math.min(total, page + 2);
+
+                for (let i = start; i <= end; i++) {
+                    const activeClass = i === page ? 'bg-red-500 text-white' : 'bg-gray-800 hover:bg-gray-700 text-white';
+                    container.append(`<button class="pagination-btn px-4 py-2 rounded-lg transition ${activeClass}" data-page="${i}">${i}</button>`);
+                }
+
+                if (page < total) {
+                    container.append(`<button class="pagination-btn px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition" data-page="${page + 1}">Next <i class="fas fa-chevron-right"></i></button>`);
+                }
+
+                $('#pageInfo').text(`Page ${page} of ${total}`);
+            }
+
+            function loadSeries(page) {
+                if (isLoading) return;
+
+                isLoading = true;
+                $('#loadingIndicator').removeClass('hidden');
+
+                const filters = {
+                    search: $('#searchInput').val(),
+                    genreId: $('#genreFilter').val(),
+                    year: $('#yearFilter').val(),
+                    sortBy: $('#sortByFilter').val(),
+                    page: page,
+                    pageSize: 20
+                };
+
+                $.ajax({
+                    url: '@Url.Action("LoadPage", "Series")',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: filters,
+                    success: function(response) {
+                        if (response && response.series) {
+                            displaySeries(response.series);
+                            updatePagination(response.currentPage, response.totalPages);
+
+                            const params = new URLSearchParams();
+                            params.set('page', page);
+                            if (filters.search) params.set('search', filters.search);
+                            if (filters.genreId) params.set('genreId', filters.genreId);
+                            if (filters.year) params.set('year', filters.year);
+                            if (filters.sortBy) params.set('sortBy', filters.sortBy);
+
+                            window.history.pushState({}, '', `?${params.toString()}`);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error);
+                        alert('Failed to load series. Please try again.');
+                    },
+                    complete: function() {
+                        isLoading = false;
+                        $('#loadingIndicator').addClass('hidden');
+                    }
+                });
+            }
+
+            function displaySeries(seriesList) {
+                const grid = $('#seriesGrid');
+                grid.empty();
+
+                if (!seriesList || seriesList.length === 0) {
+                    grid.html('<div class="col-span-full text-center py-12 text-gray-400 text-xl">No series found</div>');
+                    return;
+                }
+
+                seriesList.forEach(series => {
+                    const card = `
+                        <div class="series-card group cursor-pointer transform transition duration-300 hover:scale-105" onclick="loadContentModal(${series.id}, 'Series')">
+                            <div class="relative overflow-hidden rounded-lg shadow-lg">
+                                <img src="${series.image}" alt="${series.title}"
+                                     class="w-full h-80 object-cover group-hover:opacity-75 transition"
+                                     onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                                <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
+                                    <i class="fas fa-star"></i> ${series.rating}
+                                </div>
+                                <div class="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded text-xs font-bold">
+                                    ${series.totalSeasons} Seasons
+                                </div>
+                                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                    <h3 class="font-bold text-lg truncate text-white">${series.title}</h3>
+                                    <p class="text-gray-300 text-sm">${series.year}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    grid.append(card);
+                });
+            }
+
+            let searchTimeout;
+            $('#searchInput').on('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => loadSeries(1), 500);
+            });
+
+            $('#genreFilter, #yearFilter, #sortByFilter').on('change', function() {
+                loadSeries(1);
+            });
+
+            $('#resetFilters').on('click', function() {
+                $('#searchInput').val('');
+                $('#genreFilter').val('');
+                $('#yearFilter').val('');
+                $('#sortByFilter').val('rating_desc');
+                loadSeries(1);
+            });
+
+            $(document).on('click', '.pagination-btn', function(e) {
+                e.preventDefault();
+                const page = parseInt($(this).data('page'));
+                loadSeries(page);
+            });
+        });
+    </script>
+}

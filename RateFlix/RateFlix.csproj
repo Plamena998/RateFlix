@@ -24,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RateFlix.Data\RateFlix.Data.csproj" />
+    <ProjectReference Include="..\RateFlix.Infrastructure\RateFlix.Services.csproj" />
   </ItemGroup>
 
   <ItemGroup>

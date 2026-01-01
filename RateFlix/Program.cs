@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RateFlix.Core;
 using RateFlix.Data;
 using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== Configure services =====
@@ -30,23 +30,24 @@ builder.Services.AddSingleton(resolver =>
 // MVC
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
+builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 
 var app = builder.Build();
 
 // ===== Apply migrations and seed data =====
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
 
-    // Run migrations
-    var context = services.GetRequiredService<AppDbContext>();
-    await context.Database.MigrateAsync();
+//    // Run migrations
+//    var context = services.GetRequiredService<AppDbContext>();
+//    await context.Database.MigrateAsync();
 
-    // Seed data
-    await DataSeed.Initialize(services);
-}
-Console.WriteLine("gotovo");
+//    // Seed data
+//    await DataSeed.Initialize(services);
+//}
+//Console.WriteLine("gotovo");
 
 // ===== Configure middleware =====
 if (!app.Environment.IsDevelopment())

@@ -1,0 +1,25 @@
+﻿@model List<RateFlix.Data.Models.Movie>
+
+<section class="py-16">
+    <div class="container mx-auto px-6">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="text-3xl font-bold">
+                <i class="fas fa-chart-line text-red-500 mr-2"></i>
+                Trending Now
+            </h2>
+        </div>
+
+        <div id="trendingMoviesGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            @foreach (var movie in Model)
+            {
+                @await Html.PartialAsync("_MovieCard", movie)
+            }
+        </div>
+
+        <div class="text-center mt-8">
+            <button id="loadMoreBtn" class="bg-red-500 px-8 py-3 rounded-full hover:bg-red-600 transition">
+                Load More Movies
+            </button>
+        </div>
+    </div>
+</section>
