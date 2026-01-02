@@ -11,8 +11,10 @@
              onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
 
         <!-- Rating -->
-        <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
-            <i class="fas fa-star"></i> @Model.IMDBScore
+        <div id="seriesBadge-@Model.Id" class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
+            <i class="fas fa-star"></i>  <span id="seriesBadge-@Model.Id">
+                @Model.IMDBScore.ToString("0.0")
+            </span>
         </div>
 
         <!-- Seasons -->

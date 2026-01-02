@@ -1,18 +1,24 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RateFlix.Data;
 using RateFlix.Data.Models;
+using RateFlix.Infrastructure;
 using RateFlix.Models.ViewModels;
+using System.Security.Claims;
 
 namespace RateFlix.Controllers
 {
     public class SeriesController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<AppUser> _userManager;
 
-        public SeriesController(AppDbContext context)
+        public SeriesController(AppDbContext context, UserManager<AppUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // ============================
@@ -173,26 +179,5 @@ namespace RateFlix.Controllers
 
             return PartialView("Components/_SeasonsModal", series);
         }
-
-        //// ============================
-        //// DETAILS PAGE (OPTIONAL)
-        //// ============================
-        //public async Task<IActionResult> Details(int id)
-        //{
-        //    var series = await _context.Series
-        //        .Include(s => s.Director)
-        //        .Include(s => s.ContentGenres)
-        //            .ThenInclude(cg => cg.Genre)
-        //        .Include(s => s.ContentActors)
-        //            .ThenInclude(ca => ca.Actor)
-        //        .Include(s => s.Seasons.OrderBy(se => se.SeasonNumber))
-        //            .ThenInclude(se => se.Episodes.OrderBy(ep => ep.EpisodeNumber))
-        //        .FirstOrDefaultAsync(s => s.Id == id);
-
-        //    if (series == null)
-        //        return NotFound();
-
-        //    return View(series);
-        //}
     }
 }

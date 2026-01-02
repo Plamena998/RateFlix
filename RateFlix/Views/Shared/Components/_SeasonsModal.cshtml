@@ -1,116 +1,46 @@
 ﻿@model RateFlix.Data.Models.Series
 
-<!-- Seasons Modal Overlay -->
-<div id="seasonsModal-@Model.Id" class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4" onclick="closeSeasonsModal(@Model.Id)">
-    <div class="bg-gray-900 rounded-xl max-w-7xl w-full max-h-[95vh] overflow-y-auto" onclick="event.stopPropagation()">
+<div id="seasonsModal-@Model.Id"
+     class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4"
+     onclick="closeSeasonsModal(@Model.Id)">
 
-        <!-- Close Button -->
-        <button onclick="closeSeasonsModal(@Model.Id)" class="absolute top-6 right-6 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full w-12 h-12 flex items-center justify-center text-2xl z-10 transition-all hover:scale-110">
+    <div class="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6"
+         onclick="event.stopPropagation()">
+
+        <!-- Close -->
+        <button onclick="closeSeasonsModal(@Model.Id)"
+                class="absolute top-4 right-4 bg-black bg-opacity-60 hover:bg-opacity-80 text-white
+                       rounded-full w-10 h-10 flex items-center justify-center text-xl z-10">
             <i class="fas fa-times"></i>
         </button>
 
-        <!-- Header -->
-        <div class="bg-gradient-to-r from-red-900 to-gray-900 p-8 rounded-t-xl">
-            <h2 class="text-4xl font-bold text-white mb-2">@Model.Title</h2>
-            <p class="text-gray-300 text-lg">@Model.TotalSeasons Seasons • @Model.ReleaseYear</p>
-        </div>
+        <h2 class="text-3xl font-bold text-white mb-6">@Model.Title - Seasons & Episodes</h2>
 
-        <!-- Content -->
-        <div class="p-8">
-
-            @foreach (var season in Model.Seasons.OrderBy(s => s.SeasonNumber))
-            {
-                <div class="mb-8 last:mb-0">
-
-                    <!-- Season Header -->
-                    <div class="flex items-center justify-between mb-4 bg-gray-800 p-4 rounded-lg cursor-pointer hover:bg-gray-750 transition" onclick="toggleSeason(@season.Id)">
-                        <div class="flex items-center gap-4">
-                            <div class="bg-red-500 text-white w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg">
-                                @season.SeasonNumber
-                            </div>
-                            <div>
-                                <h3 class="text-2xl font-bold text-white">Season @season.SeasonNumber</h3>
-                                <p class="text-gray-400">@season.Episodes.Count Episodes • @season.ReleaseYear</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="bg-yellow-500 text-black px-4 py-2 rounded-full font-bold">
-                                <i class="fas fa-star"></i> @season.IMDBScore
-                            </span>
-                            <i class="fas fa-chevron-down text-white text-xl transition-transform" id="chevron-@season.Id"></i>
-                        </div>
-                    </div>
-
-                    <!-- Episodes List (Collapsible) -->
-                    <div id="season-@season.Id" class="hidden space-y-3 pl-16">
-                        @foreach (var episode in season.Episodes.OrderBy(e => e.EpisodeNumber))
-                        {
-                            <div class="bg-gray-800 rounded-lg p-4 hover:bg-gray-750 transition group">
-                                <div class="flex items-start justify-between">
-
-                                    <!-- Episode Info -->
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-3 mb-2">
-                                            <span class="bg-gray-700 text-white px-3 py-1 rounded font-bold text-sm">
-                                                E@episode.EpisodeNumber
-                                            </span>
-                                            <h4 class="text-lg font-semibold text-white">@episode.Title</h4>
-                                        </div>
-                                        <div class="flex items-center gap-4 text-sm text-gray-400 mb-2">
-                                            @if (episode.Duration.HasValue)
-                                            {
-                                                <span><i class="far fa-clock mr-1"></i>@episode.Duration min</span>
-                                            }
-                                            <span class="bg-yellow-500 text-black px-2 py-1 rounded text-xs font-bold">
-                                                <i class="fas fa-star"></i> @episode.IMDBScore
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Episode Rating Section -->
-                                    <div class="ml-4">
-                                        @if (User.Identity.IsAuthenticated)
-                                        {
-                                            <!-- Logged In - Show Stars -->
-                                            <div class="flex items-center gap-1" id="episodeStars-@episode.Id">
-                                                @for (int i = 1; i <= 10; i++)
-                                                {
-                                                    <button onclick="rateEpisode(@episode.Id, @i, event)"
-                                                            class="episode-star-btn text-xl text-gray-600 hover:text-yellow-400 transition-all"
-                                                            data-rating="@i"
-                                                            title="Rate @i/10">
-                                                        <i class="fas fa-star"></i>
-                                                    </button>
-                                                }
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1 text-center">Click to rate</p>
-                                        }
-                                        else
-                                        {
-                                            <!-- Not Logged In - Disabled Stars -->
-                                            <div class="flex items-center gap-1 opacity-50 cursor-not-allowed" title="Login to rate">
-                                                @for (int i = 1; i <= 10; i++)
-                                                {
-                                                    <div class="text-xl text-gray-600">
-                                                        <i class="fas fa-star"></i>
-                                                    </div>
-                                                }
-                                            </div>
-                                            <a asp-area="Identity" asp-page="/Account/Login" class="text-xs text-red-500 hover:text-red-400 mt-1 block text-center">
-                                                Login to rate
-                                            </a>
-                                        }
-                                    </div>
-
-                                </div>
-                            </div>
-                        }
-                    </div>
-
+        @foreach (var season in Model.Seasons.OrderBy(s => s.SeasonNumber))
+        {
+            <div class="mb-4 border-b border-gray-700 pb-4">
+                <div class="flex justify-between items-center cursor-pointer" onclick="toggleSeason(@season.Id)">
+                    <h3 class="text-xl font-semibold text-white">
+                        Season @season.SeasonNumber
+                        <span class="text-yellow-400 ml-2">
+                            <i class="fas fa-star mr-1"></i>@season.IMDBScore.ToString("0.0")
+                        </span>
+                    </h3>
+                    <i id="chevron-@season.Id" class="fas fa-chevron-down text-gray-400 transition-transform duration-300"></i>
                 </div>
-            }
 
-        </div>
-
+                <div id="season-@season.Id" class="mt-2 hidden pl-4">
+                    @foreach (var episode in season.Episodes.OrderBy(e => e.EpisodeNumber))
+                    {
+                        <div class="mb-2 flex justify-between items-center bg-gray-800 p-2 rounded-lg">
+                            <span class="text-white">Episode @episode.EpisodeNumber: @episode.Title</span>
+                            <span class="text-yellow-400">
+                                <i class="fas fa-star mr-1"></i>@episode.IMDBScore.ToString("0.0")
+                            </span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>

@@ -41,8 +41,9 @@
                     <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
                         @Model.ReleaseYear
                     </span>
-                    @if (Model is RateFlix.Data.Models.Movie movie)
+                    @if (isMovie)
                     {
+                        var movie = Model as RateFlix.Data.Models.Movie;
                         <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
                             @movie.Duration min
                         </span>
@@ -93,14 +94,14 @@
                 <div class="space-y-6">
                     <div>
                         <h3 class="text-xl font-bold text-white mb-3">
-                            @(Model is RateFlix.Data.Models.Movie ? "Director" : "Creator")
+                            @(isMovie ? "Director" : "Creator")
                         </h3>
 
-                        @if (Model is RateFlix.Data.Models.Movie m)
+                        @if (isMovie)
                         {
+                            var m = Model as RateFlix.Data.Models.Movie;
                             <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
-                                <img src="@m.Director.ImageUrl"
-                                     class="w-16 h-16 rounded-full object-cover" />
+                                <img src="@m.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
                                 <span class="text-white font-semibold">@m.Director.Name</span>
                             </div>
                         }
@@ -109,8 +110,7 @@
                         {
                             var s = Model as RateFlix.Data.Models.Series;
                             <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
-                                <img src="@s.Director.ImageUrl"
-                                     class="w-16 h-16 rounded-full object-cover" />
+                                <img src="@s.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
                                 <span class="text-white font-semibold">@s.Director.Name</span>
                             </div>
                         }
@@ -132,9 +132,20 @@
                 </div>
             </div>
 
-            <!-- ⭐ RATING SECTION -->
-            @if(isMovie)
+            <!-- Series Seasons Button -->
+            @if (isSeries)
             {
+                <div class="mb-6 text-center">
+                    <button onclick="loadSeasonsModal(@Model.Id)"
+                            class="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600
+                                       text-white px-10 py-4 rounded-lg transition-all font-bold text-lg
+                                       shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <i class="fas fa-tv mr-2"></i> View Seasons & Episodes
+                    </button>
+                </div>
+            }
+
+            <!-- ⭐ RATING SECTION -->
             <div class="border-t border-gray-800 pt-8">
                 <div class="bg-gray-800 rounded-xl p-8">
 
@@ -144,47 +155,52 @@
 
                     @if (User.Identity.IsAuthenticated)
                     {
-                        <div class="text-center">
+                        <div class="flex flex-col gap-4 items-center">
 
-                            <!-- Animated Stars -->
-                            <div class="flex justify-center gap-2 mb-6" id="starRating-@Model.Id">
-                                @for (int i = 1; i <= 10; i++)
-                                {
-                                    <button type="button"
-                                            class="star-btn text-5xl text-gray-500 transition-colors duration-300 transform hover:scale-125"
-                                            data-rating="@i"
-                                            onmouseover="highlightStars(@Model.Id, @i)"
-                                            onmouseout="resetStars(@Model.Id)"
-                                            onclick="rateContent(@Model.Id, @i)">
-                                        <i class="fas fa-star"></i>
-                                    </button>
-                                }
-                            </div>
-
-                            <p id="selectedRating-@Model.Id"
-                               class="text-yellow-400 font-bold text-2xl mb-6 hidden"></p>
-
-                            <!--  Review Input + Submit -->
-                            <div class="max-w-3xl mx-auto">
-                                <div class="flex flex-col sm:flex-row gap-3">
-
-                                    <textarea id="reviewText-@Model.Id"
-                                          rows="2"
-                                          placeholder="Write your review (optional)..."
-                                          class="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg resize-none
-                                                     focus:outline-none focus:ring-2 focus:ring-red-500">
-                                    </textarea>
-
-                                    <button onclick="submitReview(@Model.Id, '@contentType')"
-                                            class="shrink-0 bg-red-500 hover:bg-red-600 text-white
-                                                                       px-6 py-3 rounded-lg font-bold transition
-                                                                       flex items-center justify-center">
-                                        <i class="fas fa-paper-plane mr-2"></i>
-                                        Submit
-                                    </button>
-
+                            <!-- Stars -->
+                            @if (isMovie)
+                            {
+                                <div class="flex justify-center gap-2" id="starRating-@Model.Id">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <button type="button"
+                                                class="star-btn text-5xl text-gray-500 transition-colors duration-300 transform hover:scale-125"
+                                                data-rating="@i"
+                                                onmouseover="highlightStars(@Model.Id, @i)"
+                                                onmouseout="resetStars(@Model.Id)"
+                                                onclick="rateContent(@Model.Id, @i)">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                    }
                                 </div>
+                            }
+                            @if (isSeries)
+                            {
+                                <div class="flex justify-center gap-2" id="seriesStars-@Model.Id">
+                                    @for (int i = 1; i <= 10; i++)
+                                    {
+                                        <i class="fas fa-star text-gray-500 text-4xl cursor-pointer"
+                                           onclick="rateSeries(@Model.Id, @i)"></i>
+                                    }
+                                </div>
+                            }
+
+                            <!-- Textarea + Submit inline -->
+                            <div class="flex flex-col sm:flex-row gap-3 w-full max-w-3xl">
+                                <textarea id="@(isSeries ? "seriesReviewText-" + Model.Id : "reviewText-" + Model.Id)"
+                                      rows="2"
+                                      placeholder="Write your review (optional)..."
+                                      class="flex-1 bg-gray-700 text-white px-4 py-3 rounded-lg resize-none
+                                          focus:outline-none focus:ring-2 focus:ring-red-500"></textarea>
+
+                                <button onclick="submitReviewUnified(@Model.Id, @(isSeries.ToString().ToLower()))"
+                                        class="shrink-0 bg-red-500 hover:bg-red-600 text-white
+                                                   px-6 py-3 rounded-lg font-bold transition
+                                                   flex items-center justify-center">
+                                    <i class="fas fa-paper-plane mr-2"></i>Submit
+                                </button>
                             </div>
+
                         </div>
                     }
                     else
@@ -194,28 +210,14 @@
                             <a asp-area="Identity"
                                asp-page="/Account/Login"
                                class="inline-block bg-red-500 hover:bg-red-600 text-white
-                                                          px-8 py-3 rounded-lg font-bold transition">
+                                          px-8 py-3 rounded-lg font-bold transition">
                                 Login to Rate
                             </a>
                         </div>
                     }
                 </div>
             </div>
-            }
 
-            @if (isSeries)
-            {
-                <div class="mt-8 text-center">
-                    <button onclick="loadSeasonsModal(@Model.Id)"
-                            class="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600
-                       text-white px-10 py-4 rounded-lg transition-all font-bold text-lg
-                       shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="fas fa-tv mr-2"></i>
-                        View All Seasons & Episodes
-                    </button>
-                </div>
-            }
         </div>
     </div>
 </div>
-
