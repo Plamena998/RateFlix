@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RateFlix.Data;
+using RateFlix.Data.Models;
 using RateFlix.Models.ViewModels;
 
 namespace RateFlix.Controllers
@@ -18,6 +19,7 @@ namespace RateFlix.Controllers
         {
             var model = new HomeViewModel
             {
+
                 TopMovies = await _context.Movies
                     .OrderByDescending(m => m.IMDBScore)
                     .Take(10)
@@ -101,5 +103,40 @@ namespace RateFlix.Controllers
 
             return Json(movies);
         }
+
+        public IActionResult NewsSection()
+        {
+            var topGenres = _context.Genres
+                                    .OrderByDescending(g => g.ContentGenres.Count(c => c.Content.ReleaseYear == 2025))
+                                    .Take(3)
+                                    .ToList();
+
+            var yearActor = _context.Actors
+                                    .Include(a => a.ContentActors)
+                                    .ThenInclude(ca => ca.Content)
+                                    .OrderByDescending(a => a.ContentActors.Count(ca => ca.Content.ReleaseYear == 2025))
+                                    .FirstOrDefault();
+
+            var yearActorRoles = yearActor?.ContentActors
+                                          .Where(ca => ca.Content.ReleaseYear == 2025)
+                                          .Select(ca => ca.Content)
+                                          .ToList() ?? new List<Content>();
+
+            var awardedContent = _context.Movies
+                                         .Where(c => c.ReleaseYear == 2025)
+                                         .OrderByDescending(c => c.IMDBScore)
+                                         .FirstOrDefault();
+
+            var model = new HomeNewsViewModel
+            {
+                TopGenres = topGenres,
+                YearActor = yearActor,
+                YearActorRoles = yearActorRoles,
+                AwardedContent = awardedContent
+            };
+
+            return PartialView("_NewsSection", model);
+        }
+
     }
 }
