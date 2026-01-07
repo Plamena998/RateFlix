@@ -8,7 +8,6 @@ using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
-// ===== Configure services =====
 
 // DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -27,7 +26,6 @@ builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppOpti
 builder.Services.AddSingleton(resolver =>
     resolver.GetRequiredService<IOptions<AppOptions>>().Value);
 
-// MVC
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 builder.Services.AddTransient<IEmailSender, EmailSender>();
@@ -49,7 +47,7 @@ var app = builder.Build();
 //}
 //Console.WriteLine("gotovo");
 
-// ===== Configure middleware =====
+//  middleware 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -64,13 +62,10 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Razor Pages (if any)
 app.MapRazorPages();
 
-// Default route
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// Run application
 await app.RunAsync();

@@ -39,21 +39,18 @@ namespace RateFlix.Data
             modelBuilder.Entity<Movie>().ToTable("Movies");
             modelBuilder.Entity<Series>().ToTable("Series");
 
-            // ===== Director ↔ Movie (One-to-Many) =====
             modelBuilder.Entity<Movie>()
                 .HasOne(m => m.Director)
                 .WithMany(d => d.Movies)
                 .HasForeignKey(m => m.DirectorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ===== Director ↔ Series (One-to-Many) =====
             modelBuilder.Entity<Series>()
                 .HasOne(s => s.Director)
                 .WithMany(d => d.Series)
                 .HasForeignKey(s => s.DirectorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ===== Content ↔ Genre (Many-to-Many) =====
             modelBuilder.Entity<ContentGenre>()
                 .HasKey(cg => new { cg.ContentId, cg.GenreId });
 
@@ -67,35 +64,30 @@ namespace RateFlix.Data
                 .WithMany(g => g.ContentGenres)
                 .HasForeignKey(cg => cg.GenreId);
 
-            // ===== Series ↔ Season (One-to-Many) ===== ДОБАВЕНО
             modelBuilder.Entity<Season>()
                 .HasOne(s => s.Series)
                 .WithMany(sr => sr.Seasons)
                 .HasForeignKey(s => s.SeriesId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== Season ↔ Episodes (One-to-Many) ===== ПРОМЕНЕНО
             modelBuilder.Entity<Episode>()
                 .HasOne(e => e.Season)
                 .WithMany(s => s.Episodes)
                 .HasForeignKey(e => e.SeasonId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== Review ↔ Content (One-to-Many) =====
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.Content)
                 .WithMany(c => c.Reviews)
                 .HasForeignKey(r => r.ContentId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== Review ↔ AppUser (One-to-Many) =====
             modelBuilder.Entity<Review>()
                 .HasOne(r => r.User)
                 .WithMany(u => u.Reviews)
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // ===== FavoriteContent ↔ AppUser & Content (Many-to-Many) =====
             modelBuilder.Entity<FavoriteContent>()
                 .HasKey(f => new { f.UserId, f.ContentId });
 
@@ -109,7 +101,6 @@ namespace RateFlix.Data
                 .WithMany(c => c.FavoriteMovies)
                 .HasForeignKey(f => f.ContentId);
 
-            // ===== Actor ↔ Content (Many-to-Many) =====
             modelBuilder.Entity<ContentActor>()
                 .HasKey(ca => new { ca.ContentId, ca.ActorId });
 
@@ -123,11 +114,9 @@ namespace RateFlix.Data
                 .WithMany(a => a.ContentActors)
                 .HasForeignKey(ca => ca.ActorId);
 
-            // ===== Optional: Indexes for optimization =====
             modelBuilder.Entity<Review>()
                 .HasIndex(r => new { r.ContentId, r.UserId });
 
-            // ДОБАВЕНО: Index за Season
             modelBuilder.Entity<Season>()
                 .HasIndex(s => s.SeriesId);
         }

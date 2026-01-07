@@ -1,0 +1,249 @@
+﻿@model RateFlix.Models.ViewModels.UserProfileViewModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black py-12">
+    <div class="container mx-auto px-6">
+
+        <div class="bg-gradient-to-r from-red-900 via-gray-900 to-gray-800 rounded-2xl p-8 mb-8 shadow-2xl">
+            <div class="flex items-center gap-6">
+                <div class="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center text-4xl font-bold text-gray-900">
+                    @Model.UserName.Substring(0, 1).ToUpper()
+                </div>
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">@Model.UserName</h1>
+                    <p class="text-gray-300">@Model.Email</p>
+                    <div class="flex gap-4 mt-3 text-sm">
+                        <span class="text-yellow-400 font-semibold">
+                            <i class="fas fa-star"></i> @Model.Statistics.TotalReviews Ratings
+                        </span>
+                        <span class="text-red-400 font-semibold">
+                            <i class="fas fa-heart"></i> @Model.Statistics.TotalFavorites Favorites
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-white">Average Rating</h3>
+                    <i class="fas fa-chart-line text-yellow-400 text-2xl"></i>
+                </div>
+                <p class="text-4xl font-bold text-yellow-400">@Model.Statistics.AverageRating.ToString("F1")</p>
+                <p class="text-gray-400 text-sm mt-2">out of 10</p>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-white">Content Split</h3>
+                    <i class="fas fa-film text-red-400 text-2xl"></i>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div>
+                        <p class="text-2xl font-bold text-white">@Model.Statistics.TotalMovies</p>
+                        <p class="text-gray-400 text-sm">Movies</p>
+                    </div>
+                    <div class="text-gray-600 text-3xl">/</div>
+                    <div>
+                        <p class="text-2xl font-bold text-white">@Model.Statistics.TotalSeries</p>
+                        <p class="text-gray-400 text-sm">Series</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold text-white">Top Genre</h3>
+                    <i class="fas fa-trophy text-yellow-400 text-2xl"></i>
+                </div>
+                @if (Model.Statistics.TopGenres.Any())
+                {
+                    <p class="text-2xl font-bold text-white">@Model.Statistics.TopGenres.First().Genre</p>
+                    <p class="text-gray-400 text-sm mt-2">@Model.Statistics.TopGenres.First().Count favorites</p>
+                }
+                else
+                {
+                    <p class="text-gray-400">No favorites yet</p>
+                }
+            </div>
+        </div>
+
+        @if (Model.Statistics.TopGenres.Any())
+        {
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg mb-8">
+                <h3 class="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                    <i class="fas fa-chart-pie text-yellow-400"></i>
+                    Top Genres Distribution
+                </h3>
+                <div class="space-y-4">
+                    @foreach (var genre in Model.Statistics.TopGenres)
+                    {
+                        <div>
+                            <div class="flex justify-between mb-2">
+                                <span class="text-white font-semibold">@genre.Genre</span>
+                                <span class="text-gray-400">@genre.Count (@genre.Percentage.ToString("F1")%)</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-4">
+                                <div class="bg-gradient-to-r from-yellow-400 to-red-500 h-4 rounded-full transition-all duration-500"
+                                     style="width: @(genre.Percentage)%"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <div class="mb-6">
+            <div class="flex gap-4 border-b border-gray-700">
+                <button onclick="switchTab('reviews')" id="reviewsTab"
+                        class="tab-button px-6 py-3 font-semibold text-white border-b-2 border-yellow-400">
+                    <i class="fas fa-star"></i> My Reviews (@Model.Reviews.Count)
+                </button>
+                <button onclick="switchTab('favorites')" id="favoritesTab"
+                        class="tab-button px-6 py-3 font-semibold text-gray-400 border-b-2 border-transparent hover:text-white">
+                    <i class="fas fa-heart"></i> Favorites (@Model.Favorites.Count)
+                </button>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div id="reviewsSection" class="tab-content">
+            @if (Model.Reviews.Any())
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach (var review in Model.Reviews)
+                    {
+                        <div class="bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer"
+                             onclick="loadContentModal(@review.ContentId, '@review.ContentType')">
+                            <div class="relative h-64">
+                                <img src="@review.ImageUrl" alt="@review.Title"
+                                     class="w-full h-full object-cover"
+                                     onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" />
+                                <div class="absolute top-3 right-3 bg-black bg-opacity-80 px-3 py-1 rounded-full">
+                                    <span class="text-yellow-400 font-bold flex items-center gap-1">
+                                        <i class="fas fa-star text-sm"></i>
+                                        @review.IMDBScore
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="p-4">
+                                <h4 class="text-white font-bold text-lg mb-2 truncate">@review.Title</h4>
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="bg-yellow-400 text-black px-3 py-1 rounded-full font-bold">
+                                        @review.Rating/10
+                                    </div>
+                                    <span class="text-gray-400 text-sm">Your rating</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(review.Comment))
+                                {
+                                    <p class="text-gray-400 text-sm italic line-clamp-2 mb-2">"@review.Comment"</p>
+                                }
+                                <p class="text-gray-500 text-xs">Reviewed on @review.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-20">
+                    <i class="fas fa-star text-gray-600 text-6xl mb-4"></i>
+                    <p class="text-gray-400 text-xl">You haven't reviewed any content yet</p>
+                    <a href="@Url.Action("Index", "Movies")" class="inline-block mt-4 bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition">
+                        Browse Movies
+                    </a>
+                </div>
+            }
+        </div>
+
+        <!-- Favorites Section -->
+        <div id="favoritesSection" class="tab-content hidden">
+            @if (Model.Favorites.Any())
+            {
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    @foreach (var favorite in Model.Favorites)
+                    {
+                        <div class="group cursor-pointer" onclick="loadContentModal(@favorite.ContentId, '@favorite.ContentType')">
+                            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                                <div class="relative h-72">
+                                    <img src="@favorite.ImageUrl" alt="@favorite.Title"
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                         onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" />
+                                    <div class="absolute top-2 right-2 bg-red-500 text-white p-2 rounded-full">
+                                        <i class="fas fa-heart"></i>
+                                    </div>
+                                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-yellow-400 font-bold flex items-center gap-1">
+                                                <i class="fas fa-star text-sm"></i>
+                                                @favorite.IMDBScore
+                                            </span>
+                                            @if (favorite.ReleaseYear.HasValue)
+                                            {
+                                                <span class="text-gray-300 text-sm">@favorite.ReleaseYear</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gray-900">
+                                    <p class="text-white font-semibold truncate mb-1">@favorite.Title</p>
+                                    <p class="text-gray-400 text-xs">Added @favorite.DateAdded.ToString("MMM dd")</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-20">
+                    <i class="fas fa-heart text-gray-600 text-6xl mb-4"></i>
+                    <p class="text-gray-400 text-xl">You haven't added any favorites yet</p>
+                    <a href="@Url.Action("Index", "Movies")" class="inline-block mt-4 bg-red-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-600 transition">
+                        Discover Content
+                    </a>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Hide all sections
+        document.querySelectorAll('.tab-content').forEach(section => {
+            section.classList.add('hidden');
+        });
+
+        // Remove active state from all tabs
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.classList.remove('border-yellow-400', 'text-white');
+            button.classList.add('border-transparent', 'text-gray-400');
+        });
+
+        // Show selected section and activate tab
+        if (tab === 'reviews') {
+            document.getElementById('reviewsSection').classList.remove('hidden');
+            document.getElementById('reviewsTab').classList.add('border-yellow-400', 'text-white');
+            document.getElementById('reviewsTab').classList.remove('border-transparent', 'text-gray-400');
+        } else if (tab === 'favorites') {
+            document.getElementById('favoritesSection').classList.remove('hidden');
+            document.getElementById('favoritesTab').classList.add('border-yellow-400', 'text-white');
+            document.getElementById('favoritesTab').classList.remove('border-transparent', 'text-gray-400');
+        }
+    }
+
+    // Assuming you have these functions from your content modals
+    function openContentModal(contentId, contentType) {
+        if (typeof loadContentModal === 'function') {
+            loadContentModal(contentId, contentType);
+        } else {
+            window.location.href = `/${contentType}/Details/${contentId}`;
+        }
+    }
+</script>

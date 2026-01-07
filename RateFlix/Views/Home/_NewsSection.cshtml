@@ -39,21 +39,16 @@
             <div class="relative bg-gradient-to-br from-red-600 via-red-500 to-yellow-500 rounded-2xl p-6
                     transform scale-105 shadow-2xl hover:scale-110 transition-all duration-500 flex flex-col items-center">
 
-                <!-- Title -->
                 <h3 class="text-3xl font-bold text-center text-white drop-shadow-lg mb-4">
                     🌟 Actor of the Year
                 </h3>
-
-                <!-- Photo -->
                 <div class="w-32 h-32 rounded-full overflow-hidden shadow-2xl mb-4 flex-shrink-0">
                     <img src="@Model.YearActor.ImageUrl" alt="@Model.YearActor.Name"
                          class="w-full h-full object-cover border-4 border-white" />
                 </div>
-
-                <!-- Actor Name -->
                 <p class="text-xl font-bold text-center mb-4">@Model.YearActor.Name</p>
 
-                <!-- Actor Roles / Movies -->
+                <!-- Actor Roles -->
                 <div class="bg-black/20 rounded-xl p-4 text-white max-h-64 overflow-y-auto">
                     <h4 class="text-xl font-bold mb-2">Roles in 2025:</h4>
                     <ul class="list-disc list-inside space-y-1">
@@ -63,8 +58,6 @@
                         }
                     </ul>
                 </div>
-
-                <!-- Pedestal / First place -->
                 <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-yellow-400 rounded-t-xl shadow-lg flex items-center justify-center font-bold text-gray-900">
                     #1
                 </div>
@@ -81,29 +74,19 @@
                 <h3 class="text-3xl font-bold mb-6 text-center text-white drop-shadow-lg">
                     🏆 Best of 2025
                 </h3>
-
-                <!-- Movie poster -->
                 <div class="flex justify-center mb-4">
                     <img src="@Model.AwardedContent.ImageUrl" alt="@Model.AwardedContent.Title"
                          class="w-40 h-56 rounded-xl shadow-2xl object-cover border-4 border-white"
                          onerror="this.src='https://via.placeholder.com/160x224?text=No+Image'" />
                 </div>
-
-                <!-- Movie Title -->
                 <p class="text-2xl font-extrabold text-center mb-2 text-white">@Model.AwardedContent.Title</p>
-
-                <!-- IMDB Rating -->
                 <p class="mt-2 text-lg text-center text-yellow-400 font-bold">
                     ⭐ @Model.AwardedContent.IMDBScore.ToString("0.0")
                 </p>
-
-                <!-- Pedestal / #1 badge -->
                 <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-20 h-10 bg-yellow-500 rounded-t-xl shadow-lg flex items-center justify-center font-bold text-gray-900">
                     #1
                 </div>
             </div>
         }
-
-
     </div>
 </section>

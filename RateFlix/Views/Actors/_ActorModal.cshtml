@@ -1,0 +1,110 @@
+﻿@model RateFlix.Models.ViewModels.ActorModalViewModel
+
+
+<div id="actorModal-@Model.Id"
+     class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl transform scale-95 transition-transform duration-300 relative"
+         onclick="event.stopPropagation()">
+
+        <!-- Close Button -->
+        <button onclick="closeActorModal()" class="absolute top-4 right-4 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl z-10 transition-all hover:scale-110">
+            <i class="fas fa-times"></i>
+        </button>
+
+        <!-- Header + Actor Info -->
+        <div class="relative bg-gradient-to-r from-red-900 via-gray-900 to-gray-800 p-8 rounded-t-2xl">
+            <div class="flex flex-col md:flex-row items-center gap-6">
+
+                <div class="relative">
+                    <div class="w-40 h-40 rounded-full overflow-hidden border-4 border-yellow-400 shadow-xl ring-4 ring-yellow-400/20">
+                        <img src="@Model.ImageUrl" alt="@Model.Name" class="w-full h-full object-cover" onerror="this.src='https://via.placeholder.com/200?text=Actor'" />
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 bg-yellow-400 text-black rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
+                        <i class="fas fa-star text-xl"></i>
+                    </div>
+                </div>
+
+                <div class="flex-1 text-center md:text-left">
+                    <h2 class="text-4xl font-bold text-white mb-2">@Model.Name</h2>
+                    @if (Model.BirthDate.HasValue)
+                    {
+                        <div class="flex flex-col md:flex-row gap-4 text-lg mb-3">
+                            <div class="flex items-center justify-center md:justify-start gap-2 text-yellow-400">
+                                <i class="fas fa-birthday-cake"></i>
+                                <span class="font-semibold">@Model.BirthDate.Value.ToString("MMMM dd, yyyy")</span>
+                            </div>
+                            <div class="flex items-center justify-center md:justify-start gap-2 text-gray-300">
+                                <i class="fas fa-hourglass-half"></i>
+                                <span class="font-semibold">Age: @Model.Age</span>
+                            </div>
+                        </div>
+                    }
+                    <div class="flex items-center justify-center md:justify-start gap-2 text-gray-400">
+                        <i class="fas fa-film"></i>
+                        <span>@Model.TopRoles.Count movies/series</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Roles -->
+        <div class="p-8">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-trophy text-yellow-400"></i>
+                    Top Roles
+                </h3>
+                <span class="text-gray-400 text-sm">Highest rated performances</span>
+            </div>
+
+            @if (Model.TopRoles.Any())
+            {
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    @foreach (var content in Model.TopRoles)
+                    {
+                        <div class="group cursor-pointer"
+                             onclick="openContentModalAndCloseActor(@content.ContentId, '@(content.ContentType ?? "Movies")')">
+                            <div class="bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105">
+                                <div class="relative h-48 overflow-hidden">
+                                    <img src="@content.ImageUrl" alt="@content.Title" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" onerror="this.src='https://via.placeholder.com/300x400?text=No+Image'" />
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                        <div class="absolute bottom-0 left-0 right-0 p-3 flex items-center justify-center gap-2 text-white">
+                                            <i class="fas fa-play-circle text-2xl"></i>
+                                            <span class="text-sm font-semibold">View Details</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-gray-900">
+                                    <p class="text-white font-semibold truncate mb-1">@content.Title</p>
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-yellow-400 font-bold flex items-center gap-1">
+                                            <i class="fas fa-star text-sm"></i>
+                                            @content.IMDBScore
+                                        </span>
+                                        @if (content.ReleaseYear.HasValue)
+                                        {
+                                            <span class="text-gray-400 text-sm">@content.ReleaseYear</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div id="contentModal-@Model.Id" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
+    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+
+        <!-- Close Button -->
+        <button onclick="closeContentModal()" class="absolute top-4 right-4 bg-black bg-opacity-60 hover:bg-opacity-80 text-white rounded-full w-10 h-10 flex items-center justify-center text-xl z-10">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="p-8">
+            <h2 class="text-3xl font-bold text-white">@Model.Id</h2>
+        </div>
+    </div>
+</div>

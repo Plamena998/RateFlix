@@ -1,0 +1,56 @@
+﻿@{
+    ViewData["Title"] = "Login Required";
+    Layout = "_Layout";
+}
+
+<style>
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes slideUp {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    .animate-slideUp {
+        animation: slideUp 0.4s ease-out;
+    }
+</style>
+
+<div class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4 animate-fadeIn">
+    <div class="bg-gray-800 rounded-2xl max-w-md w-full p-8 shadow-2xl animate-slideUp">
+
+        <div class="text-center mb-6">
+            <div class="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-lock text-2xl text-gray-900"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-2">Authentication Required</h2>
+            <p class="text-gray-400">Please log in or create an account to access your profile.</p>
+        </div>
+
+        <!-- Close Button -->
+        <a href="/"
+           class="block w-full text-center bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-gray-600 transition-all">
+            <i class="fas fa-times mr-2"></i>
+            Close
+        </a>
+    </div>
+</div>

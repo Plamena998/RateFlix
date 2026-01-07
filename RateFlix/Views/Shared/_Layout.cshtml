@@ -24,6 +24,7 @@
                         <a asp-controller="Movies" asp-action="Index" class="hover:text-red-500 transition">Movies</a>
                         <a asp-controller="Series" asp-action="Index" class="hover:text-red-500 transition">Series</a>
                         <a asp-controller="Actors" asp-action="Index" class="hover:text-red-500 transition">Actors</a>
+                        <a asp-controller="Profile" asp-action="Index" class="hover:text-red-500 transition">My Profile</a>
                     </div>
                     <div class="flex items-center space-x-4">
                         @if (User.Identity.IsAuthenticated)
@@ -53,12 +54,18 @@
             <p>&copy; 2024 RateFlix. All rights reserved.</p>
         </div>
     </footer>
+
     <div id="contentModalContainer"></div>
     <div id="seasonsModalContainer"></div>
+    <div id="actorModalContainer"></div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/modals.js" asp-append-version="true"></script>
     <script src="~/js/animations.js"></script>
+    <script src="~/js/actors.js"></script>
+    <script src="~/js/favorites.js"></script>
+
 
 
 

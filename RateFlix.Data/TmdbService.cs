@@ -22,8 +22,6 @@ namespace RateFlix.Data
             _options = appOptions;
         }
 
-        // ===== Movies =====
-
         public async Task<List<TmdbMovie>> GetMoviesAsync(int page)
         {
             var url = $"{_options.Url}/movie/popular?api_key={_options.ApiKey}&page={page}";
@@ -47,9 +45,6 @@ namespace RateFlix.Data
             var url = $"{_options.Url}/movie/{movieId}/credits?api_key={_options.ApiKey}";
             return await _http.GetFromJsonAsync<TmdbCreditsResponse>(url);
         }
-
-        // ===== Series =====
-
         public async Task<List<TmdbSeries>> GetSeriesAsync(int page)
         {
             var url = $"{_options.Url}/tv/popular?api_key={_options.ApiKey}&page={page}";
@@ -80,16 +75,12 @@ namespace RateFlix.Data
             return await _http.GetFromJsonAsync<TmdbCreditsResponse>(url);
         }
 
-        // ===== Seasons & Episodes =====
 
         public async Task<TmdbSeason?> GetSeasonDetailsAsync(int seriesId, int seasonNumber)
         {
             var url = $"{_options.Url}/tv/{seriesId}/season/{seasonNumber}?api_key={_options.ApiKey}";
             return await _http.GetFromJsonAsync<TmdbSeason>(url);
         }
-
-        // ===== Genres =====
-
         public async Task<List<TmdbGenre>> GetMovieGenresAsync()
         {
             var url = $"{_options.Url}/genre/movie/list?api_key={_options.ApiKey}";
@@ -103,8 +94,6 @@ namespace RateFlix.Data
             var response = await _http.GetFromJsonAsync<TmdbGenreResponse>(url);
             return response?.Genres ?? new();
         }
-
-        // ===== Person (Actor/Director) =====
 
         public async Task<TmdbPerson?> GetPersonDetailsAsync(int personId)
         {

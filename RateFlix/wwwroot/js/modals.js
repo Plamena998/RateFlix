@@ -1,13 +1,5 @@
-﻿// ================================
-// Universal Content Modal JS
-// ================================
-
-// Track selected ratings per contentId
+﻿// Track selected ratings per contentId
 const selectedRatings = {};
-
-// ================================
-// CONTENT MODALS (Movies / Series)
-// ================================
 
 // Load Content Modal (Movies / Series / Episodes)
 function loadContentModal(contentId, contentType = 'Movies') {
@@ -44,9 +36,7 @@ function closeContentModal(contentId) {
     }
 }
 
-// ================================
 // STAR RATING
-// ================================
 
 function highlightStars(contentId, index) {
     const container = document.getElementById(`starRating-${contentId}`);
@@ -77,9 +67,7 @@ function rateSeries(seriesId, rating) {
     });
 }
 
-// ================================
 // SUBMIT REVIEW (Movies & Series unified)
-// ================================
 
 function submitReviewUnified(contentId, isSeries = false) {
     const rating = selectedRatings[contentId] || 0;
@@ -143,10 +131,7 @@ function submitReviewUnified(contentId, isSeries = false) {
         }
     });
 }
-
-// ================================
 // SERIES MODALS
-// ================================
 
 function loadSeasonsModal(seriesId) {
     closeContentModal(seriesId);
@@ -190,9 +175,7 @@ function toggleSeason(seasonId) {
     }
 }
 
-// ================================
 // FAVORITES
-// ================================
 
 function toggleFavorite(contentId) {
     const token = $('input[name="__RequestVerificationToken"]').val();
@@ -213,9 +196,7 @@ function toggleFavorite(contentId) {
     });
 }
 
-// ================================
 // ESC KEY CLOSE
-// ================================
 
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {

@@ -19,7 +19,6 @@ public static class DataSeed
 
         await context.Database.MigrateAsync();
 
-        // ===== Roles =====
         string[] roles = { "Administrator", "User" };
         foreach (var role in roles)
         {
@@ -27,7 +26,6 @@ public static class DataSeed
                 await roleManager.CreateAsync(new IdentityRole(role));
         }
 
-        // ===== Admin =====
         var adminEmail = "admin@rateflix.com";
         var admin = await userManager.FindByEmailAsync(adminEmail);
         if (admin == null)
@@ -42,13 +40,12 @@ public static class DataSeed
             await userManager.AddToRoleAsync(admin, "Administrator");
         }
 
-        // ===== Genres from TMDB =====
         if (!context.Genres.Any())
         {
             var movieGenres = await tmdbService.GetMovieGenresAsync();
             var tvGenres = await tmdbService.GetTvGenresAsync();
 
-            // Обединяваме жанровете (премахваме дубликати по име)
+            // Обединява жанровете (премахва дубликати по име)
             var allGenres = movieGenres
                 .Concat(tvGenres)
                 .GroupBy(g => g.Name)
@@ -67,11 +64,10 @@ public static class DataSeed
 
         var genres = context.Genres.ToList();
 
-        // Речници за актьори и директори (за да избегнем дубликати)
+        // Речници за актьори и директори (за да избегна дубликати)
         var actorCache = new Dictionary<int, Actor>();
         var directorCache = new Dictionary<int, Director>();
 
-        // ===== Movies from TMDB =====
         if (!context.Movies.Any())
         {
             int page = 1, added = 0;
@@ -117,7 +113,7 @@ public static class DataSeed
                             }
                         }
 
-                        if (director == null) continue; // Пропускаме филми без директор
+                        if (director == null) continue; 
 
                         var movie = new Movie
                         {

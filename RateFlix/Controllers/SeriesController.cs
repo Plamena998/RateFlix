@@ -20,10 +20,6 @@ namespace RateFlix.Controllers
             _context = context;
             _userManager = userManager;
         }
-
-        // ============================
-        // INDEX (Main Series Page)
-        // ============================
         public async Task<IActionResult> Index(
             string? search,
             int? genreId,
@@ -85,9 +81,8 @@ namespace RateFlix.Controllers
             return View(model);
         }
 
-        // ============================
         // AJAX PAGINATION
-        // ============================
+
         [HttpGet]
         public async Task<IActionResult> LoadPage(
             string? search,
@@ -143,9 +138,6 @@ namespace RateFlix.Controllers
             });
         }
 
-        // ============================
-        // CONTENT MODAL (SERIES INFO)
-        // ============================
         [HttpGet]
         public async Task<IActionResult> GetContentModal(int id)
         {
@@ -163,9 +155,6 @@ namespace RateFlix.Controllers
             return PartialView("Components/_ContentModal", series);
         }
 
-        // ============================
-        // SEASONS & EPISODES MODAL
-        // ============================
         [HttpGet]
         public async Task<IActionResult> GetSeasonsModal(int id)
         {

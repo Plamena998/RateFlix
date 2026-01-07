@@ -22,12 +22,10 @@
             @Model.TotalSeasons Seasons
         </div>
 
-        <!-- Bottom overlay -->
         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
             <h3 class="font-bold text-lg truncate text-white">@Model.Title</h3>
             <p class="text-gray-300 text-sm">@Model.ReleaseYear</p>
 
-            <!-- Genres (NULL SAFE) -->
             @if (Model.ContentGenres != null && Model.ContentGenres.Any())
             {
                 <div class="flex flex-wrap gap-1 mt-2">
@@ -40,6 +38,5 @@
                 </div>
             }
         </div>
-
     </div>
 </div>

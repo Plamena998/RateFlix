@@ -3,8 +3,6 @@
 @{
     ViewData["Title"] = "Home";
 }
-
-<!-- Hero Section -->
 <partial name="Components/_HeroSection" />
 
 <div id="homeNewsSection" class="mt-24"></div>
@@ -16,11 +14,10 @@
 <!-- Top Rated Series -->
 <partial name="Components/_TopSeries" model="Model.TopSeries" />
 
-
 <!-- Trending Movies -->
 <partial name="Components/_TrendingMovies" model="Model.TrendingMovies" />
 
-<!-- Modal Container -->
+
 <div id="contentModalContainer"></div>
 
 @section Scripts {
