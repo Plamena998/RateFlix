@@ -17,34 +17,37 @@ async function toggleFavorite(contentId, heartElement) {
             return;
         }
 
-        if (data.isFavorite) {
-            // Add favorite styling
-            heartElement.classList.remove('far');
-            heartElement.classList.add('fas', 'text-red-500');
-            heartElement.parentElement.classList.add('scale-110');
+        // Update heart icon based on favorite status
+        updateHeartIcon(heartElement, data.isFavorite);
 
-            // Show notification
-            showNotification(data.message, 'success');
-        } else {
-            // Remove favorite styling
-            heartElement.classList.remove('fas', 'text-red-500');
-            heartElement.classList.add('far');
-            heartElement.parentElement.classList.remove('scale-110');
-
-            // Show notification
-            showNotification(data.message, 'info');
-        }
-
-        // Animate the heart
-        heartElement.parentElement.classList.add('animate-pulse');
-        setTimeout(() => {
-            heartElement.parentElement.classList.remove('animate-pulse');
-        }, 300);
+        // Show success notification
+        showNotification(data.message, data.isFavorite ? 'success' : 'info');
 
     } catch (error) {
         console.error('Error toggling favorite:', error);
         showNotification('Failed to update favorite', 'error');
     }
+}
+
+// Update heart icon appearance
+function updateHeartIcon(heartElement, isFavorite) {
+    if (isFavorite) {
+        // Add favorite styling
+        heartElement.classList.remove('far');
+        heartElement.classList.add('fas', 'text-red-500');
+        heartElement.parentElement.classList.add('scale-110');
+    } else {
+        // Remove favorite styling
+        heartElement.classList.remove('fas', 'text-red-500');
+        heartElement.classList.add('far');
+        heartElement.parentElement.classList.remove('scale-110');
+    }
+
+    // Pulse animation
+    heartElement.parentElement.classList.add('animate-pulse');
+    setTimeout(() => {
+        heartElement.parentElement.classList.remove('animate-pulse');
+    }, 300);
 }
 
 // Check if content is favorited (call this when opening a modal)
@@ -53,13 +56,7 @@ async function checkFavoriteStatus(contentId, heartElement) {
         const response = await fetch(`/Profile/IsFavorite?contentId=${contentId}`);
         const data = await response.json();
 
-        if (data.isFavorite) {
-            heartElement.classList.remove('far');
-            heartElement.classList.add('fas', 'text-red-500');
-        } else {
-            heartElement.classList.remove('fas', 'text-red-500');
-            heartElement.classList.add('far');
-        }
+        updateHeartIcon(heartElement, data.isFavorite);
     } catch (error) {
         console.error('Error checking favorite status:', error);
     }
@@ -67,21 +64,28 @@ async function checkFavoriteStatus(contentId, heartElement) {
 
 // Show notification toast
 function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full`;
-
-    // Set color based on type
-    if (type === 'success') {
-        notification.classList.add('bg-green-500', 'text-white');
-    } else if (type === 'error') {
-        notification.classList.add('bg-red-500', 'text-white');
-    } else {
-        notification.classList.add('bg-gray-800', 'text-white');
+    // Remove any existing notifications
+    const existingNotification = document.querySelector('.notification-toast');
+    if (existingNotification) {
+        existingNotification.remove();
     }
+
+    const notification = document.createElement('div');
+    notification.className = 'notification-toast fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
+
+    // Set color and icon based on type
+    const config = {
+        success: { bg: 'bg-green-500', icon: 'check-circle' },
+        error: { bg: 'bg-red-500', icon: 'exclamation-circle' },
+        info: { bg: 'bg-gray-800', icon: 'info-circle' }
+    };
+
+    const { bg, icon } = config[type] || config.info;
+    notification.classList.add(bg, 'text-white');
 
     notification.innerHTML = `
         <div class="flex items-center gap-2">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <i class="fas fa-${icon}"></i>
             <span class="font-semibold">${message}</span>
         </div>
     `;
@@ -89,41 +93,98 @@ function showNotification(message, type = 'info') {
     document.body.appendChild(notification);
 
     // Slide in
-    setTimeout(() => {
+    requestAnimationFrame(() => {
         notification.classList.remove('translate-x-full');
-    }, 10);
+    });
 
-    // Slide out and remove
+    // Slide out and remove after 3 seconds
     setTimeout(() => {
         notification.classList.add('translate-x-full');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
+        setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
 
 // Show login modal when user tries to favorite without being logged in
-function showLoginModal() {
-    const existingModal = document.getElementById('Profile/LoginPrompt');
+async function showLoginModal() {
+    // Check if modal already exists
+    const existingModal = document.getElementById('loginPromptModal');
     if (existingModal) {
-        existingModal.remove();
+        existingModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        return;
     }
 
-    document.body.appendChild(modal);
-    document.body.style.overflow = 'hidden';
+    try {
+        // Fetch the login prompt view from server
+        const response = await fetch('/Profile/LoginPrompt');
 
-    // Close on background click
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            closeLoginModal();
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const html = await response.text();
+
+        // Create container and insert the HTML
+        const modalContainer = document.createElement('div');
+        modalContainer.id = 'loginPromptModal';
+        modalContainer.innerHTML = html;
+
+        document.body.appendChild(modalContainer);
+        document.body.style.overflow = 'hidden';
+
+        // Close on background click
+        const modalOverlay = modalContainer.querySelector('#loginPromptOverlay');
+        if (modalOverlay) {
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    closeLoginModal();
+                }
+            });
+        }
+
+        // Close on Escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeLoginModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+
+    } catch (error) {
+        console.error('Error loading login modal:', error);
+        showNotification('Please log in to add favorites', 'info');
+
+        // Fallback: redirect to login page after a short delay
+        setTimeout(() => {
+            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+        }, 1500);
+    }
+}
+
+// Close login modal
+function closeLoginModal() {
+    const modal = document.getElementById('loginPromptModal');
+    if (modal) {
+        // Fade out animation
+        modal.style.opacity = '0';
+        modal.style.transition = 'opacity 0.3s ease-out';
+
+        setTimeout(() => {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+        }, 300);
+    }
+}
+
+// Initialize favorites on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Check favorite status for any visible heart icons
+    const heartIcons = document.querySelectorAll('[id^="favoriteHeart-"]');
+    heartIcons.forEach(heart => {
+        const contentId = heart.id.split('-')[1];
+        if (contentId) {
+            checkFavoriteStatus(parseInt(contentId), heart);
         }
     });
-}
-
-function closeLoginModal() {
-    const modal = document.getElementById('loginPrompt');
-    if (modal) {
-        modal.remove();
-        document.body.style.overflow = 'auto';
-    }
-}
+});

@@ -173,5 +173,12 @@ namespace RateFlix.Controllers
 
             return Json(new { isFavorite });
         }
+
+        // Return login prompt for AJAX
+        [HttpGet]
+        public IActionResult LoginPrompt()
+        {
+            return PartialView("LoginPrompt");
+        }
     }
 }
