@@ -25,6 +25,10 @@
                         <a asp-controller="Series" asp-action="Index" class="hover:text-red-500 transition">Series</a>
                         <a asp-controller="Actors" asp-action="Index" class="hover:text-red-500 transition">Actors</a>
                         <a asp-controller="Profile" asp-action="Index" class="hover:text-red-500 transition">My Profile</a>
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="hover:text-red-500 transition">Admin panel</a>
+                        }
                     </div>
                     <div class="flex items-center space-x-4">
                         @if (User.Identity.IsAuthenticated)

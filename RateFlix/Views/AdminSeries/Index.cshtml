@@ -1,0 +1,168 @@
+﻿@model RateFlix.Models.ViewModels.Admin.AdminSeriesIndexViewModel
+@{
+    ViewData["Title"] = "Series Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Header with Search and Add Button -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Series Management</h1>
+        <p class="text-gray-400">Manage all series in the database (@Model.TotalSeries total)</p>
+    </div>
+    <a asp-controller="AdminSeries" asp-action="Create" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center gap-2">
+        <i class="fas fa-plus"></i>
+        Add New Series
+    </a>
+</div>
+
+<!-- Search Bar -->
+<div class="bg-gray-800 rounded-lg p-4 mb-6">
+    <form asp-controller="AdminSeries" asp-action="Index" method="get" class="flex gap-4">
+        <input type="text" name="search" value="@Model.Search" placeholder="Search series..."
+               class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold transition">
+            <i class="fas fa-search mr-2"></i>Search
+        </button>
+        @if (!string.IsNullOrEmpty(Model.Search))
+        {
+            <a asp-controller="AdminSeries" asp-action="Index" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-times mr-2"></i>Clear
+            </a>
+        }
+    </form>
+</div>
+
+<!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+    <div class="bg-green-500 text-white px-6 py-3 rounded-lg mb-6">
+        <i class="fas fa-check-circle mr-2"></i>@TempData["Success"]
+    </div>
+}
+
+<!-- Series Table -->
+<div class="bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+    <table class="w-full">
+        <thead class="bg-gray-700">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Poster</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Year</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Seasons</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">IMDB</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Director</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase">Genres</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-700">
+            @foreach (var series in Model.Series)
+            {
+                <tr class="hover:bg-gray-700 transition">
+                    <td class="px-6 py-4">
+                        <img src="@series.ImageUrl" alt="@series.Title" class="w-12 h-16 object-cover rounded"
+                             onerror="this.src='https://via.placeholder.com/100x150?text=No+Image'" />
+                    </td>
+                    <td class="px-6 py-4">
+                        <p class="text-white font-semibold">@series.Title</p>
+                    </td>
+                    <td class="px-6 py-4 text-gray-300">@series.ReleaseYear</td>
+                    <td class="px-6 py-4">
+                        <span class="bg-blue-500 text-white px-2 py-1 rounded font-bold text-sm">
+                            @series.TotalSeasons
+                        </span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="bg-yellow-500 text-black px-2 py-1 rounded font-bold text-sm">
+                            @series.IMDBScore
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-gray-300">@series.DirectorName</td>
+                    <td class="px-6 py-4">
+                        <div class="flex flex-wrap gap-1">
+                            @foreach (var genre in series.Genres.Take(3))
+                            {
+                                <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs">@genre</span>
+                            }
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex items-center justify-end gap-2">
+                            <a asp-controller="AdminSeries" asp-action="Edit" asp-route-id="@series.Id" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded transition">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button onclick="confirmDelete(@series.Id, '@series.Title')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded transition">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination -->
+@if (Model.TotalPages > 1)
+{
+    <div class="flex justify-center items-center gap-2 mt-6">
+        @if (Model.CurrentPage > 1)
+        {
+            <a href="?search=@Model.Search&page=@(Model.CurrentPage - 1)"
+               class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+        }
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <a href="?search=@Model.Search&page=@i"
+               class="@(i == Model.CurrentPage ? "bg-blue-500" : "bg-gray-800 hover:bg-gray-700") text-white px-4 py-2 rounded">
+                @i
+            </a>
+        }
+
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <a href="?search=@Model.Search&page=@(Model.CurrentPage + 1)"
+               class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        }
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold text-white mb-4">Confirm Delete</h3>
+        <p class="text-gray-300 mb-6">Are you sure you want to delete "<span id="seriesTitle"></span>"?</p>
+        <div class="flex gap-4">
+            <button onclick="closeDeleteModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                Cancel
+            </button>
+            <form id="deleteForm" method="post" class="flex-1">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, title) {
+            document.getElementById('seriesTitle').textContent = title;
+            var form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete", "AdminSeries")/' + id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+    </script>
+}
