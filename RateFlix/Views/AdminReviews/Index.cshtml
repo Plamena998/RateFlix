@@ -1,0 +1,193 @@
+﻿@model RateFlix.Models.ViewModels.Admin.AdminReviewsIndexViewModel
+@{
+    ViewData["Title"] = "Review Moderation";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Header -->
+<div class="mb-6">
+    <h1 class="text-3xl font-bold text-white mb-2">Review Moderation</h1>
+    <p class="text-gray-400">Manage all user reviews (@Model.TotalReviews total)</p>
+</div>
+
+<!-- Filters -->
+<div class="bg-gray-800 rounded-lg p-4 mb-6">
+    <form asp-controller="AdminReviews" asp-action="Index" method="get" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- Search -->
+        <input type="text" name="search" value="@Model.Search" placeholder="Search by content or user..."
+               class="bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500" />
+
+        <!-- Rating Filter -->
+        <select name="rating" class="bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500">
+            <option value="">All Ratings</option>
+            @for (int i = 10; i >= 1; i--)
+            {
+                <option value="@i" selected="@(Model.SelectedRating == i)">@i / 10</option>
+            }
+        </select>
+
+        <!-- Buttons -->
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-2 rounded-lg font-semibold transition">
+                <i class="fas fa-search mr-2"></i>Search
+            </button>
+            @if (!string.IsNullOrEmpty(Model.Search) || Model.SelectedRating.HasValue)
+            {
+                <a asp-controller="AdminReviews" asp-action="Index" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold transition">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Success Message -->
+@if (TempData["Success"] != null)
+{
+    <div class="bg-green-500 text-white px-6 py-3 rounded-lg mb-6">
+        <i class="fas fa-check-circle mr-2"></i>@TempData["Success"]
+    </div>
+}
+
+<!-- Reviews List -->
+@if (Model.Reviews.Any())
+{
+    <div class="space-y-4">
+        @foreach (var review in Model.Reviews)
+        {
+            <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-gray-600 transition">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <!-- User Info -->
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center font-bold text-black">
+                                @review.UserName.Substring(0, 1).ToUpper()
+                            </div>
+                            <div>
+                                <a asp-controller="AdminUsers" asp-action="Details" asp-route-id="@review.UserId"
+                                   class="text-white font-semibold hover:text-yellow-400 transition">
+                                    @review.UserName
+                                </a>
+                                <p class="text-gray-400 text-sm">@review.CreatedAt.ToString("MMM dd, yyyy HH:mm")</p>
+                            </div>
+                        </div>
+
+                        <!-- Content Info -->
+                        <div class="mb-3">
+                            <span class="text-gray-400 text-sm">Reviewed:</span>
+                            <p class="text-white font-bold text-lg">@review.ContentTitle</p>
+                            <span class="bg-gray-700 text-gray-300 px-2 py-1 rounded text-xs">@review.ContentType</span>
+                        </div>
+
+                        <!-- Rating -->
+                        <div class="mb-3">
+                            <span class="bg-yellow-500 text-black px-4 py-2 rounded-lg font-bold text-lg">
+                                <i class="fas fa-star mr-1"></i>@review.Rating / 10
+                            </span>
+                        </div>
+
+                        <!-- Comment -->
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <div class="bg-gray-700 rounded-lg p-4">
+                                <p class="text-gray-300">@review.Comment</p>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex flex-col gap-2 ml-4">
+                        <button onclick="confirmDelete(@review.Id, '@review.ContentTitle')"
+                                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition whitespace-nowrap">
+                            <i class="fas fa-trash mr-2"></i>Delete
+                        </button>
+                        <form asp-action="BanUserFromComments" asp-route-userId="@review.UserId" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit"
+                                    class="w-full bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition whitespace-nowrap"
+                                    onclick="return confirm('Ban @review.UserName from commenting?')">
+                                <i class="fas fa-ban mr-2"></i>Ban User
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="flex justify-center items-center gap-2 mt-6">
+            @if (Model.CurrentPage > 1)
+            {
+                <a href="?search=@Model.Search&rating=@Model.SelectedRating&page=@(Model.CurrentPage - 1)"
+                   class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <a href="?search=@Model.Search&rating=@Model.SelectedRating&page=@i"
+                   class="@(i == Model.CurrentPage ? "bg-yellow-500 text-black" : "bg-gray-800 hover:bg-gray-700 text-white") px-4 py-2 rounded">
+                    @i
+                </a>
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <a href="?search=@Model.Search&rating=@Model.SelectedRating&page=@(Model.CurrentPage + 1)"
+                   class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="bg-gray-800 rounded-xl p-12 text-center">
+        <i class="fas fa-comments text-6xl text-gray-600 mb-4"></i>
+        <p class="text-gray-400 text-xl">No reviews found</p>
+    </div>
+}
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold text-white mb-4">Confirm Delete</h3>
+        <p class="text-gray-300 mb-6">
+            Are you sure you want to delete this review for "<span id="contentTitle" class="font-bold"></span>"?
+            <br><br>
+            <span class="text-red-400">This action cannot be undone!</span>
+        </p>
+        <div class="flex gap-4">
+            <button onclick="closeDeleteModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                Cancel
+            </button>
+            <form id="deleteForm" method="post" class="flex-1">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Delete Review
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, title) {
+            document.getElementById('contentTitle').textContent = title;
+            var form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete", "AdminReviews")/' + id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+    </script>
+}

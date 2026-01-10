@@ -6,6 +6,7 @@ using RateFlix.Core;
 using RateFlix.Data;
 using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
+using RateFlix.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -56,6 +57,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseMiddleware<IPBlacklistMiddleware>("access-denied.html");
 
 app.UseRouting();
 

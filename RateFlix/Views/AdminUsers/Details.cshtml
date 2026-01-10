@@ -1,0 +1,236 @@
+﻿@model RateFlix.Models.ViewModels.Admin.AdminUserDetailsViewModel
+@{
+    ViewData["Title"] = "User Details";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-6">
+        <a asp-controller="AdminUsers" asp-action="Index" class="text-blue-400 hover:text-blue-300 mb-4 inline-block">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Users
+        </a>
+        <h1 class="text-3xl font-bold text-white">User Details</h1>
+    </div>
+
+    <!-- User Profile Card -->
+    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-8 mb-8 shadow-lg">
+        <div class="flex items-center gap-6">
+            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center text-4xl font-bold text-blue-600">
+                @Model.UserName.Substring(0, 1).ToUpper()
+            </div>
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <h2 class="text-3xl font-bold text-white">@Model.UserName</h2>
+                    @if (Model.IsAdmin)
+                    {
+                        <span class="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                            <i class="fas fa-crown mr-1"></i>ADMIN
+                        </span>
+                    }
+                    @if (Model.IsBanned)
+                    {
+                        <span class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                            <i class="fas fa-ban mr-1"></i>BANNED
+                        </span>
+                    }
+                </div>
+                <p class="text-blue-100 mb-1"><i class="fas fa-envelope mr-2"></i>@Model.Email</p>
+                <p class="text-blue-100"><i class="fas fa-calendar mr-2"></i>Joined @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center justify-between mb-2">
+                <i class="fas fa-star text-3xl text-yellow-400"></i>
+                <span class="text-4xl font-bold text-white">@Model.TotalReviews</span>
+            </div>
+            <p class="text-gray-400">Total Reviews</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center justify-between mb-2">
+                <i class="fas fa-heart text-3xl text-red-400"></i>
+                <span class="text-4xl font-bold text-white">@Model.TotalFavorites</span>
+            </div>
+            <p class="text-gray-400">Total Favorites</p>
+        </div>
+
+        <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="flex items-center justify-between mb-2">
+                <i class="fas fa-clock text-3xl text-green-400"></i>
+                <span class="text-lg font-bold text-white">@((DateTime.UtcNow - Model.CreatedAt).Days) days</span>
+            </div>
+            <p class="text-gray-400">Member Since</p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
+        <h3 class="text-xl font-bold text-white mb-4">Admin Actions</h3>
+        <div class="flex gap-4">
+            @if (Model.IsBanned)
+            {
+                <form asp-action="UnbanUser" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        <i class="fas fa-unlock mr-2"></i>Unban User
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="BanUser" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold transition"
+                            onclick="return confirm('Are you sure you want to ban this user?')">
+                        <i class="fas fa-ban mr-2"></i>Ban User
+                    </button>
+                </form>
+            }
+
+            @if (!Model.IsAdmin)
+            {
+                <form asp-action="MakeAdmin" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="bg-yellow-500 hover:bg-yellow-600 text-black px-6 py-3 rounded-lg font-semibold transition"
+                            onclick="return confirm('Make this user an administrator?')">
+                        <i class="fas fa-user-shield mr-2"></i>Make Admin
+                    </button>
+                </form>
+            }
+            else
+            {
+                <form asp-action="RemoveAdmin" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+                            onclick="return confirm('Remove admin privileges from this user?')">
+                        <i class="fas fa-user-minus mr-2"></i>Remove Admin
+                    </button>
+                </form>
+            }
+
+            <button onclick="confirmDelete('@Model.Id', '@Model.UserName')" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition ml-auto">
+                <i class="fas fa-trash mr-2"></i>Delete User
+            </button>
+        </div>
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700">
+        <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-comments text-yellow-400"></i>
+            Recent Reviews (@Model.TotalReviews total)
+        </h3>
+
+        @if (Model.Reviews.Any())
+        {
+            <div class="space-y-4">
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="bg-gray-700 rounded-lg p-4">
+                        <div class="flex items-start justify-between mb-2">
+                            <div>
+                                <p class="text-white font-bold text-lg">@review.Title</p>
+                                <p class="text-gray-400 text-sm">@review.CreatedAt.ToString("MMM dd, yyyy")</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
+                                    @review.Rating/10
+                                </span>
+                                <span class="bg-gray-600 text-white px-3 py-1 rounded-full text-sm">
+                                    IMDB: @review.IMDBScore
+                                </span>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(review.Comment))
+                        {
+                            <p class="text-gray-300">@review.Comment</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-gray-400 text-center py-8">No reviews yet</p>
+        }
+    </div>
+
+    <!-- Favorite Content -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 class="text-2xl font-bold text-white mb-4 flex items-center gap-2">
+            <i class="fas fa-heart text-red-400"></i>
+            Favorite Content (@Model.TotalFavorites total)
+        </h3>
+
+        @if (Model.Favorites.Any())
+        {
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                @foreach (var favorite in Model.Favorites)
+                {
+                    <div class="bg-gray-700 rounded-lg overflow-hidden hover:scale-105 transition transform">
+                        <img src="@favorite.ImageUrl" alt="@favorite.Title" class="w-full h-48 object-cover"
+                             onerror="this.src='https://via.placeholder.com/200x300?text=No+Image'" />
+                        <div class="p-3">
+                            <p class="text-white font-semibold text-sm truncate">@favorite.Title</p>
+                            <div class="flex items-center justify-between mt-1">
+                                <span class="text-yellow-400 text-sm font-bold">
+                                    <i class="fas fa-star text-xs"></i> @favorite.IMDBScore
+                                </span>
+                                <span class="text-gray-400 text-xs">@favorite.ReleaseYear</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-gray-400 text-center py-8">No favorites yet</p>
+        }
+    </div>
+
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center">
+    <div class="bg-gray-800 rounded-xl p-6 max-w-md w-full">
+        <h3 class="text-xl font-bold text-white mb-4">Confirm Delete</h3>
+        <p class="text-gray-300 mb-6">
+            Are you sure you want to permanently delete user "<span id="userName" class="font-bold"></span>"?
+            <br><br>
+            <span class="text-red-400">This will delete all their reviews and favorites. This action cannot be undone!</span>
+        </p>
+        <div class="flex gap-4">
+            <button onclick="closeDeleteModal()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                Cancel
+            </button>
+            <form id="deleteForm" method="post" class="flex-1">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">
+                    Delete User
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function confirmDelete(id, username) {
+            document.getElementById('userName').textContent = username;
+            var form = document.getElementById('deleteForm');
+            form.action = '@Url.Action("Delete", "AdminUsers")/' + id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+        }
+    </script>
+}

@@ -1,0 +1,110 @@
+﻿@model List<RateFlix.Models.ViewModels.Admin.AdminUserListViewModel>
+@{
+    ViewData["Title"] = "Admin Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Header -->
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-3xl font-bold text-white mb-2">Administrator Management</h1>
+        <p class="text-gray-400">Manage users with administrator privileges (@Model.Count total)</p>
+    </div>
+    <a asp-controller="AdminUsers" asp-action="Index" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+        <i class="fas fa-users mr-2"></i>View All Users
+    </a>
+</div>
+
+<!-- Success/Error Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="bg-green-500 text-white px-6 py-3 rounded-lg mb-6">
+        <i class="fas fa-check-circle mr-2"></i>@TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="bg-red-500 text-white px-6 py-3 rounded-lg mb-6">
+        <i class="fas fa-exclamation-circle mr-2"></i>@TempData["Error"]
+    </div>
+}
+
+<!-- Info Box -->
+<div class="bg-blue-900 border border-blue-700 rounded-lg p-4 mb-6">
+    <div class="flex items-start gap-3">
+        <i class="fas fa-info-circle text-blue-400 text-xl mt-1"></i>
+        <div>
+            <p class="text-blue-100 font-semibold mb-1">Administrator Privileges</p>
+            <p class="text-blue-200 text-sm">Administrators have full access to manage users, content, reviews, and site settings. Be careful when granting admin privileges!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Admins List -->
+@if (Model.Any())
+{
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach (var admin in Model)
+        {
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 border-2 border-yellow-400 shadow-lg">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center text-2xl font-bold text-black">
+                        @admin.UserName.Substring(0, 1).ToUpper()
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <h3 class="text-xl font-bold text-white">@admin.UserName</h3>
+                            <i class="fas fa-crown text-yellow-400"></i>
+                        </div>
+                        <p class="text-gray-400 text-sm">@admin.Email</p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-700 rounded-lg p-3 mb-4">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-gray-400">Member since:</span>
+                        <span class="text-white font-semibold">@admin.CreatedAt.ToString("MMM yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <a asp-controller="AdminUsers" asp-action="Details" asp-route-id="@admin.Id"
+                       class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-center transition font-semibold">
+                        <i class="fas fa-eye mr-2"></i>View
+                    </a>
+                    <form asp-action="RemoveAdmin" asp-route-id="@admin.Id" method="post" class="flex-1">
+                        @Html.AntiForgeryToken()
+                        <button type="submit"
+                                class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg transition font-semibold"
+                                onclick="return confirm('Remove admin privileges from @admin.UserName?')">
+                            <i class="fas fa-user-minus mr-2"></i>Remove
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="bg-gray-800 rounded-xl p-12 text-center">
+        <i class="fas fa-user-shield text-6xl text-gray-600 mb-4"></i>
+        <p class="text-gray-400 text-xl">No administrators found</p>
+    </div>
+}
+
+<!-- Add Admin Section -->
+<div class="bg-gray-800 rounded-xl p-6 mt-8 border border-gray-700">
+    <h3 class="text-2xl font-bold text-white mb-4">
+        <i class="fas fa-user-plus text-green-400 mr-2"></i>
+        Grant Admin Privileges
+    </h3>
+    <p class="text-gray-400 mb-4">
+        To make a user an administrator, find them in the
+        <a asp-controller="AdminUsers" asp-action="Index" class="text-blue-400 hover:text-blue-300 underline">Users List</a>
+        and click "Make Admin" on their profile.
+    </p>
+    <a asp-controller="AdminUsers" asp-action="Index" class="inline-block bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold transition">
+        <i class="fas fa-search mr-2"></i>Search Users
+    </a>
+</div>
