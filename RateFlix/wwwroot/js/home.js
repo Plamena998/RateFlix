@@ -78,7 +78,7 @@
         resultsDiv.html(html);
         resultsDiv.removeClass('hidden');
 
-        // Add click handlers to search results (remove old handlers first)
+        // Add click handlers to search results
         $('.search-result-item').off('click').on('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -86,27 +86,20 @@
             const id = $(this).data('id');
             const type = $(this).data('type');
 
- 
-
-            // Hide search results
             $('#searchResults').addClass('hidden');
 
-            // Clear search input (optional)
             $('#searchInput').val('');
 
-            // Load content modal
             loadContentModal(id, type);
         });
     }
 
-    // Hide search results when clicking outside
     $(document).on('click', function (e) {
         if (!$(e.target).closest('#searchInput, #searchResults').length) {
             $('#searchResults').addClass('hidden');
         }
     });
 
-    // Load More functionality
     $('#loadMoreBtn').on('click', function () {
         const button = $(this);
         button.prop('disabled', true).text('Loading...');
@@ -162,21 +155,17 @@
     });
 });
 
-// Global function to load content modal
 function loadContentModal(id, type) {
     $.ajax({
         url: `/${type}/GetContentModal`,
         type: 'GET',
         data: { id: id },
         success: function (html) {
-            // Insert the HTML
             $('#contentModalContainer').html(html);
 
-            // The modal has dynamic ID: contentModal-{id}
             const modal = $(`#contentModal-${id}`);
 
             if (modal.length > 0) {
-                // Remove hidden class and show the modal
                 modal.removeClass('hidden');
             }
         },
@@ -187,7 +176,6 @@ function loadContentModal(id, type) {
     });
 }
 
-// Global function to close content modal
 function closeContentModal(id) {
     $(`#contentModal-${id}`).addClass('hidden');
 }

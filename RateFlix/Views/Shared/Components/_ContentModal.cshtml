@@ -207,6 +207,57 @@
                 </div>
             </div>
 
+            @if (Model.TopReviews != null && Model.TopReviews.Any())
+            {
+                <div class="border-t border-gray-800 pt-8 mt-8">
+                    <h3 class="text-2xl font-bold text-white mb-6">
+                        <i class="fas fa-comments text-red-500 mr-2"></i>
+                        Top Reviews
+                    </h3>
+
+                    <div class="space-y-4">
+                        @foreach (var review in Model.TopReviews)
+                        {
+                            <div class="bg-gray-800 rounded-lg p-6 hover:bg-gray-750 transition">
+                                <!-- Review Header -->
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                                            @review.UserName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <div>
+                                            <div class="font-semibold text-white">@review.UserName</div>
+                                            <div class="text-xs text-gray-400">
+                                                @review.CreatedAt.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Rating Stars -->
+                                    <div class="flex items-center gap-1 bg-yellow-500 text-black px-3 py-1 rounded-full font-bold">
+                                        <i class="fas fa-star"></i>
+                                        <span>@review.Rating/10</span>
+                                    </div>
+                                </div>
+
+                                <!-- Review Comment -->
+                                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                {
+                                    <p class="text-gray-300 leading-relaxed">
+                                        @review.Comment
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="text-gray-500 italic text-sm">
+                                        No comment provided
+                                    </p>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

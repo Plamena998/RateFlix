@@ -1,4 +1,4 @@
-﻿// Track selected ratings per contentId
+﻿
 const selectedRatings = {};
 
 // Load Content Modal (Movies / Series / Episodes)
@@ -108,13 +108,11 @@ function submitReviewUnified(contentId, isSeries = false) {
                 return;
             }
 
-            // Update average badge in modal and grid
             const badge = document.querySelector(`#contentModal-${contentId} .bg-yellow-500`);
             if (badge) badge.innerHTML = `<i class="fas fa-star"></i> ${res.newRating.toFixed(1)}`;
             const gridCard = document.querySelector(`.movie-card[data-movie-id='${contentId}'] .imdb-score`);
             if (gridCard) gridCard.innerHTML = `<i class="fas fa-star"></i> ${res.newRating.toFixed(1)}`;
 
-            // Turn submit button green and say "Send"
             if (submitBtn) {
                 submitBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Send';
                 submitBtn.classList.remove('bg-red-500', 'hover:bg-red-600');
@@ -196,13 +194,3 @@ function toggleFavorite(contentId) {
     });
 }
 
-// ESC KEY CLOSE
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-        document.querySelectorAll('[id^="contentModal-"], [id^="seasonsModal-"]').forEach(modal => {
-            modal.classList.add('hidden');
-        });
-        document.body.style.overflow = 'auto';
-    }
-});

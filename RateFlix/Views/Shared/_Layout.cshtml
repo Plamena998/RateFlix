@@ -25,6 +25,7 @@
                         <a asp-controller="Series" asp-action="Index" class="hover:text-red-500 transition">Series</a>
                         <a asp-controller="Actors" asp-action="Index" class="hover:text-red-500 transition">Actors</a>
                         <a asp-controller="Profile" asp-action="Index" class="hover:text-red-500 transition">My Profile</a>
+                        
                         @if (User.IsInRole("Administrator"))
                         {
                             <a asp-controller="Admin" asp-action="Index" class="hover:text-red-500 transition">Admin panel</a>
@@ -74,5 +75,30 @@
 
 
     @await RenderSectionAsync("Scripts", required: false)
+    <script>
+        window.closeModal = function() {
+            const container = document.getElementById('loginPromptModalContainer');
+            if (container) {
+                container.style.opacity = '0';
+                setTimeout(() => {
+                    container.remove();
+                    document.body.style.overflow = 'auto';
+                }, 300);
+                return;
+            }
+
+            const modal = document.getElementById('loginPromptModal');
+            if (modal) {
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    if (window.history.length > 1) {
+                        window.history.back();
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 300);
+            }
+        };
+    </script>
 </body>
 </html>

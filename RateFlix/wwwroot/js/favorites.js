@@ -9,10 +9,16 @@ async function toggleFavorite(contentId, heartElement) {
             body: JSON.stringify({ contentId: contentId })
         });
 
+        // Check if response is unauthorized (401)
+        if (response.status === 401) {
+            showLoginModal();
+            return;
+        }
+
         const data = await response.json();
 
         // Check if user needs to log in
-        if (data.message === "Please log in to add favorites") {
+        if (data.message === "Please log in" || data.message === "User not authenticated") {
             showLoginModal();
             return;
         }
@@ -32,12 +38,10 @@ async function toggleFavorite(contentId, heartElement) {
 // Update heart icon appearance
 function updateHeartIcon(heartElement, isFavorite) {
     if (isFavorite) {
-        // Add favorite styling
         heartElement.classList.remove('far');
         heartElement.classList.add('fas', 'text-red-500');
         heartElement.parentElement.classList.add('scale-110');
     } else {
-        // Remove favorite styling
         heartElement.classList.remove('fas', 'text-red-500');
         heartElement.classList.add('far');
         heartElement.parentElement.classList.remove('scale-110');
@@ -50,12 +54,11 @@ function updateHeartIcon(heartElement, isFavorite) {
     }, 300);
 }
 
-// Check if content is favorited (call this when opening a modal)
+// Check if content is favorited
 async function checkFavoriteStatus(contentId, heartElement) {
     try {
         const response = await fetch(`/Profile/IsFavorite?contentId=${contentId}`);
         const data = await response.json();
-
         updateHeartIcon(heartElement, data.isFavorite);
     } catch (error) {
         console.error('Error checking favorite status:', error);
@@ -64,7 +67,6 @@ async function checkFavoriteStatus(contentId, heartElement) {
 
 // Show notification toast
 function showNotification(message, type = 'info') {
-    // Remove any existing notifications
     const existingNotification = document.querySelector('.notification-toast');
     if (existingNotification) {
         existingNotification.remove();
@@ -73,7 +75,6 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = 'notification-toast fixed bottom-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 transform transition-all duration-300 translate-x-full';
 
-    // Set color and icon based on type
     const config = {
         success: { bg: 'bg-green-500', icon: 'check-circle' },
         error: { bg: 'bg-red-500', icon: 'exclamation-circle' },
@@ -92,12 +93,10 @@ function showNotification(message, type = 'info') {
 
     document.body.appendChild(notification);
 
-    // Slide in
     requestAnimationFrame(() => {
         notification.classList.remove('translate-x-full');
     });
 
-    // Slide out and remove after 3 seconds
     setTimeout(() => {
         notification.classList.add('translate-x-full');
         setTimeout(() => notification.remove(), 300);
@@ -106,18 +105,16 @@ function showNotification(message, type = 'info') {
 
 // Show login modal when user tries to favorite without being logged in
 async function showLoginModal() {
-    // Check if modal already exists
-    const existingModal = document.getElementById('loginPromptModal');
-    if (existingModal) {
-        existingModal.style.display = 'block';
+    // Check if modal container already exists
+    const existingContainer = document.getElementById('loginPromptModalContainer');
+    if (existingContainer) {
+        existingContainer.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         return;
     }
 
     try {
-        // Fetch the login prompt view from server
         const response = await fetch('/Profile/LoginPrompt');
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -126,60 +123,21 @@ async function showLoginModal() {
 
         // Create container and insert the HTML
         const modalContainer = document.createElement('div');
-        modalContainer.id = 'loginPromptModal';
+        modalContainer.id = 'loginPromptModalContainer';
         modalContainer.innerHTML = html;
 
         document.body.appendChild(modalContainer);
         document.body.style.overflow = 'hidden';
 
-        // Close on background click
-        const modalOverlay = modalContainer.querySelector('#loginPromptOverlay');
-        if (modalOverlay) {
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) {
-                    closeLoginModal();
-                }
-            });
-        }
-
-        // Close on Escape key
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') {
-                closeLoginModal();
-                document.removeEventListener('keydown', handleEscape);
-            }
-        };
-        document.addEventListener('keydown', handleEscape);
-
     } catch (error) {
         console.error('Error loading login modal:', error);
-        showNotification('Please log in to add favorites', 'info');
-
-        // Fallback: redirect to login page after a short delay
-        setTimeout(() => {
-            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
-        }, 1500);
-    }
-}
-
-// Close login modal
-function closeLoginModal() {
-    const modal = document.getElementById('loginPromptModal');
-    if (modal) {
-        // Fade out animation
-        modal.style.opacity = '0';
-        modal.style.transition = 'opacity 0.3s ease-out';
-
-        setTimeout(() => {
-            modal.remove();
-            document.body.style.overflow = 'auto';
-        }, 300);
+        // Fallback: redirect to login page
+        window.location.href = '/Identity/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
     }
 }
 
 // Initialize favorites on page load
 document.addEventListener('DOMContentLoaded', () => {
-    // Check favorite status for any visible heart icons
     const heartIcons = document.querySelectorAll('[id^="favoriteHeart-"]');
     heartIcons.forEach(heart => {
         const contentId = heart.id.split('-')[1];

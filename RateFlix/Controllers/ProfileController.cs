@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using RateFlix.Core.Models;
 using RateFlix.Core.ViewModels;
 using RateFlix.Services.Interfaces;
@@ -17,13 +18,16 @@ public class ProfileController : Controller
 
     public async Task<IActionResult> Index()
     {
-        if (!User.Identity.IsAuthenticated) return View("LoginPrompt");
-
+        if (!User.Identity.IsAuthenticated)
+        {
+            ViewData["Title"] = "Login Required";
+            return View("LoginPromptPage"); 
+        }
         var user = await _userManager.GetUserAsync(User);
-        if (user == null) return View("LoginPrompt");
+        if (user == null) return View("_LoginPrompt");
 
         var model = await _profileService.GetUserProfileAsync(user.Id);
-        if (model == null) return View("LoginPrompt");
+        if (model == null) return View("_LoginPrompt");
 
         model.UserName = user.UserName ?? "User";
         model.Email = user.Email;
@@ -58,5 +62,5 @@ public class ProfileController : Controller
     }
 
     [HttpGet]
-    public IActionResult LoginPrompt() => PartialView("LoginPrompt");
+    public IActionResult LoginPrompt() => PartialView("_LoginPrompt");
 }

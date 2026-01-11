@@ -4,7 +4,9 @@
     ViewData["Title"] = isEdit ? "Edit Movie" : "Add New Movie";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-
+@section Scripts {
+    <script src="~/js/favorites.js"></script>
+}
 <div class="max-w-4xl mx-auto">
 
     <!-- Header -->

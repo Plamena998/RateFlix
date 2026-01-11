@@ -136,6 +136,22 @@ namespace RateFlix.Services
 
             if (series == null) return null;
 
+            var topReviews = await _context.Reviews
+         .Where(r => r.ContentId == id)
+         .OrderByDescending(r => !string.IsNullOrWhiteSpace(r.Comment))
+         .ThenByDescending(r => r.Rating)
+         .ThenByDescending(r => r.CreatedAt)
+         .Take(3)
+         .Select(r => new ReviewViewModel
+         {
+             Id = r.Id,
+             UserName = r.User.UserName ?? "Anonymous",
+             Rating = r.Rating,
+             Comment = r.Comment ?? string.Empty,
+             CreatedAt = r.CreatedAt
+         })
+         .ToListAsync();
+
             return new ContentViewModel
             {
                 Id = series.Id,
@@ -160,7 +176,8 @@ namespace RateFlix.Services
                     Id = ca.Actor.Id,
                     Name = ca.Actor.Name,
                     ImageUrl = ca.Actor.ImageUrl
-                }).ToList()
+                }).ToList(),
+                TopReviews = topReviews
             };
         }
 

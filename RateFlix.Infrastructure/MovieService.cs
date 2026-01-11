@@ -16,12 +16,12 @@ namespace RateFlix.Services
         }
 
         public async Task<MoviesIndexViewModel> GetMoviesIndexAsync(
-     string? search,
-     int? genreId,
-     int? year,
-     string? sortBy,
-     int page = 1,
-     int pageSize = 20)
+             string? search,
+             int? genreId,
+             int? year,
+             string? sortBy,
+             int page = 1,
+             int pageSize = 20)
         {
             var query = _context.Movies
                 .Include(m => m.ContentGenres).ThenInclude(cg => cg.Genre)
@@ -133,6 +133,21 @@ namespace RateFlix.Services
 
             if (movie == null) return null;
 
+            var topReviews = await _context.Reviews
+           .Where(r => r.ContentId == id)
+           .OrderByDescending(r => !string.IsNullOrWhiteSpace(r.Comment)) // Reviews with comments first
+           .ThenByDescending(r => r.Rating)
+           .ThenByDescending(r => r.CreatedAt)
+           .Take(3)
+           .Select(r => new ReviewViewModel
+           {
+               Id = r.Id,
+               UserName = r.User.UserName ?? "Anonymous",
+               Rating = r.Rating,
+               Comment = r.Comment ?? string.Empty,
+               CreatedAt = r.CreatedAt
+           })
+           .ToListAsync();
             return new ContentViewModel
             {
                 Id = movie.Id,
@@ -157,7 +172,8 @@ namespace RateFlix.Services
                     Id = ca.Actor.Id,
                     Name = ca.Actor.Name,
                     ImageUrl = ca.Actor.ImageUrl
-                }).ToList()
+                }).ToList(),
+                TopReviews = topReviews
             };
         }
     }

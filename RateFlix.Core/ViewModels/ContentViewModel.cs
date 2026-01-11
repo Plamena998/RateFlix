@@ -27,6 +27,8 @@
 
         // Actors
         public List<ActorViewModel> Actors { get; set; } = new List<ActorViewModel>();
+        public List<ReviewViewModel> TopReviews { get; set; } = new List<ReviewViewModel>();
+
 
     }
 }
