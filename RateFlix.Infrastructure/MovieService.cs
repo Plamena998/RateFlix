@@ -16,16 +16,15 @@ namespace RateFlix.Services
         }
 
         public async Task<MoviesIndexViewModel> GetMoviesIndexAsync(
-            string? search,
-            int? genreId,
-            int? year,
-            string? sortBy,
-            int page = 1,
-            int pageSize = 20)
+     string? search,
+     int? genreId,
+     int? year,
+     string? sortBy,
+     int page = 1,
+     int pageSize = 20)
         {
             var query = _context.Movies
                 .Include(m => m.ContentGenres).ThenInclude(cg => cg.Genre)
-                .Include(m => m.Director)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(search))
@@ -52,6 +51,16 @@ namespace RateFlix.Services
             var movies = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .Select(m => new MovieCardViewModel
+                {
+                    Id = m.Id,
+                    Title = m.Title,
+                    ReleaseYear = m.ReleaseYear,
+                    IMDBScore = m.IMDBScore,
+                    ImageUrl = m.ImageUrl,
+                    Duration = m.Duration,
+                    Genres = m.ContentGenres.Take(2).Select(cg => cg.Genre.Name).ToList()
+                })
                 .ToListAsync();
 
             var genres = await _context.Genres.OrderBy(g => g.Name).ToListAsync();
@@ -114,13 +123,42 @@ namespace RateFlix.Services
             return (movies, page, totalPages, totalMovies);
         }
 
-        public async Task<Movie?> GetMovieWithDetailsAsync(int id)
+        public async Task<ContentViewModel?> GetMovieWithDetailsAsync(int id)
         {
-            return await _context.Movies
-                .Include(m => m.Director)
-                .Include(m => m.ContentGenres).ThenInclude(cg => cg.Genre)
-                .Include(m => m.ContentActors).ThenInclude(ca => ca.Actor)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var movie = await _context.Movies
+        .Include(m => m.Director)
+        .Include(m => m.ContentGenres).ThenInclude(cg => cg.Genre)
+        .Include(m => m.ContentActors).ThenInclude(ca => ca.Actor)
+        .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (movie == null) return null;
+
+            return new ContentViewModel
+            {
+                Id = movie.Id,
+                Title = movie.Title,
+                ImageUrl = movie.ImageUrl,
+                ReleaseYear = movie.ReleaseYear,
+                IMDBScore = movie.IMDBScore,
+                ContentType = "Movie",
+                Description = movie.Description,
+                TrailerUrl = movie.TrailerUrl,
+                DirectorId = movie.DirectorId,
+                DirectorName = movie.Director.Name,
+                DirectorImageUrl = movie.Director.ImageUrl,
+                Duration = movie.Duration,
+                Genres = movie.ContentGenres.Select(cg => new GenreViewModel
+                {
+                    Id = cg.Genre.Id,
+                    Name = cg.Genre.Name
+                }).ToList(),
+                Actors = movie.ContentActors.Select(ca => new ActorViewModel
+                {
+                    Id = ca.Actor.Id,
+                    Name = ca.Actor.Name,
+                    ImageUrl = ca.Actor.ImageUrl
+                }).ToList()
+            };
         }
     }
 }

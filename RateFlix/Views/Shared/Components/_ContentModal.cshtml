@@ -1,11 +1,9 @@
-﻿@using RateFlix.Core.Models
-@model RateFlix.Core.Models.Content
+﻿@using RateFlix.Core.ViewModels
+@model RateFlix.Core.ViewModels.ContentViewModel
 
 @{
-    var contentType = Model is Movie ? "Movie" :
-                      Model is Series ? "Series" : "Content";
-    var isSeries = Model is Series;
-    var isMovie = Model is Movie;
+    var isMovie = Model.ContentType == "Movie";
+    var isSeries = Model.ContentType == "Series";
 }
 
 <div id="contentModal-@Model.Id"
@@ -48,27 +46,25 @@
                     <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
                         @Model.ReleaseYear
                     </span>
-                    @if (isMovie)
+                    @if (isMovie && Model.Duration.HasValue)
                     {
-                        var movie = Model as RateFlix.Core.Models.Movie;
                         <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
-                            @movie.Duration min
+                            @Model.Duration min
                         </span>
                     }
-                    @if (isSeries)
+                    @if (isSeries && Model.TotalSeasons.HasValue)
                     {
-                        var series = Model as RateFlix.Core.Models.Series;
                         <span class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">
-                            @series.TotalSeasons Seasons
+                            @Model.TotalSeasons Seasons
                         </span>
                     }
                 </div>
 
                 <div class="flex flex-wrap gap-2 mt-4">
-                    @foreach (var contentGenre in Model.ContentGenres.Take(4))
+                    @foreach (var genre in Model.Genres.Take(4))
                     {
                         <span class="bg-red-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                            @contentGenre.Genre.Name
+                            @genre.Name
                         </span>
                     }
                 </div>
@@ -101,35 +97,23 @@
                         <h3 class="text-xl font-bold text-white mb-3">
                             @(isMovie ? "Director" : "Creator")
                         </h3>
-
-                        @if (isMovie)
-                        {
-                            var m = Model as RateFlix.Core.Models.Movie;
-                            <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
-                                <img src="@m.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
-                                <span class="text-white font-semibold">@m.Director.Name</span>
-                            </div>
-                        }
-
-                        @if (isSeries)
-                        {
-                            var s = Model as RateFlix.Core.Models.Series;
-                            <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
-                                <img src="@s.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
-                                <span class="text-white font-semibold">@s.Director.Name</span>
-                            </div>
-                        }
+                        <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
+                            <img src="@Model.DirectorImageUrl" class="w-16 h-16 rounded-full object-cover"
+                                 onerror="this.src='https://via.placeholder.com/150?text=No+Image'" />
+                            <span class="text-white font-semibold">@Model.DirectorName</span>
+                        </div>
                     </div>
 
                     <div>
                         <h3 class="text-xl font-bold text-white mb-3">Top Cast</h3>
                         <div class="grid grid-cols-2 gap-3">
-                            @foreach (var actor in Model.ContentActors.Take(4))
+                            @foreach (var actor in Model.Actors.Take(4))
                             {
-                                <div onclick="loadActorModal(@actor.ActorId)" class="flex items-center gap-2 bg-gray-800 p-2 rounded-lg cursor-pointer hover:bg-gray-700 transition">
-                                    <img src="@actor.Actor.ImageUrl"
-                                         class="w-12 h-12 rounded-full object-cover" />
-                                    <span class="text-gray-300 text-sm">@actor.Actor.Name</span>
+                                <div onclick="loadActorModal(@actor.Id)" class="flex items-center gap-2 bg-gray-800 p-2 rounded-lg cursor-pointer hover:bg-gray-700 transition">
+                                    <img src="@actor.ImageUrl"
+                                         class="w-12 h-12 rounded-full object-cover"
+                                         onerror="this.src='https://via.placeholder.com/150?text=No+Image'" />
+                                    <span class="text-gray-300 text-sm">@actor.Name</span>
                                 </div>
                             }
                         </div>
@@ -143,8 +127,8 @@
                 <div class="mb-6 text-center">
                     <button onclick="loadSeasonsModal(@Model.Id)"
                             class="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600
-                                           text-white px-10 py-4 rounded-lg transition-all font-bold text-lg
-                                           shadow-lg hover:shadow-xl transform hover:scale-105">
+                                               text-white px-10 py-4 rounded-lg transition-all font-bold text-lg
+                                               shadow-lg hover:shadow-xl transform hover:scale-105">
                         <i class="fas fa-tv mr-2"></i> View Seasons & Episodes
                     </button>
                 </div>
@@ -155,7 +139,7 @@
                 <div class="bg-gray-800 rounded-xl p-8">
 
                     <h3 class="text-3xl font-bold text-white mb-6 text-center">
-                        Rate this @contentType
+                        Rate this @Model.ContentType
                     </h3>
 
                     @if (User.Identity.IsAuthenticated)
@@ -200,8 +184,8 @@
 
                                 <button onclick="submitReviewUnified(@Model.Id, @(isSeries.ToString().ToLower()))"
                                         class="shrink-0 bg-red-500 hover:bg-red-600 text-white
-                                                       px-6 py-3 rounded-lg font-bold transition
-                                                       flex items-center justify-center">
+                                                           px-6 py-3 rounded-lg font-bold transition
+                                                           flex items-center justify-center">
                                     <i class="fas fa-paper-plane mr-2"></i>Submit
                                 </button>
                             </div>
@@ -211,11 +195,11 @@
                     else
                     {
                         <div class="text-center text-gray-400">
-                            <p class="mb-4">Sign in to rate this @contentType.ToLower()</p>
+                            <p class="mb-4">Sign in to rate this @Model.ContentType.ToLower()</p>
                             <a asp-area="Identity"
                                asp-page="/Account/Login"
                                class="inline-block bg-red-500 hover:bg-red-600 text-white
-                                              px-8 py-3 rounded-lg font-bold transition">
+                                                  px-8 py-3 rounded-lg font-bold transition">
                                 Login to Rate
                             </a>
                         </div>

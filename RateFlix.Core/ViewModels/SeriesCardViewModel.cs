@@ -8,5 +8,6 @@
         public double IMDBScore { get; set; }
         public string? ImageUrl { get; set; }
         public int TotalSeasons { get; set; }
+        public List<string> Genres { get; set; } = new List<string>();
     }
 }

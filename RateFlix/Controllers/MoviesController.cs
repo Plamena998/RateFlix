@@ -26,8 +26,8 @@ public class MoviesController : Controller
     [HttpGet]
     public async Task<IActionResult> GetContentModal(int id)
     {
-        var movie = await _movieService.GetMovieWithDetailsAsync(id);
-        if (movie == null) return NotFound();
-        return PartialView("Components/_ContentModal", movie);
+        var viewModel = await _movieService.GetMovieWithDetailsAsync(id);
+        if (viewModel == null) return NotFound();
+        return PartialView("Components/_ContentModal", viewModel);
     }
 }

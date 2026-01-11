@@ -1,7 +1,6 @@
 ﻿@model RateFlix.Core.ViewModels.HomeNewsViewModel
 
-<section class="bg-gray-900 text-white rounded-3xl p-10 shadow-2xl
-                opacity-0 animate-fadeInUp">
+<section class="bg-gray-900 text-white rounded-3xl p-10 shadow-2xl opacity-0 animate-fadeInUp">
     <h2 class="text-5xl font-extrabold mb-12 text-center tracking-widest animate-pulse">
         🎬 RateFlix 2025 Highlights
     </h2>
@@ -13,63 +12,77 @@
             transform rotate-[-2deg] scale-105 shadow-2xl hover:scale-110 transition-all duration-500
             flex flex-col items-center min-h-[350px]">
 
-            <!-- Title stays at the top -->
             <h3 class="text-3xl font-extrabold mb-6 text-center text-white drop-shadow-lg">
                 🔥 Top Genres
             </h3>
 
-            <!-- Cards container vertically centered -->
             <div class="flex flex-col gap-6 w-3/4 items-center justify-center flex-1">
-                @for (int i = 0; i < Model.TopGenres.Count; i++)
+                @if (Model?.TopGenres != null && Model.TopGenres.Any())
                 {
-                    var genre = Model.TopGenres[i];
-                    <div class="flex items-center justify-between w-full px-6 py-4
-                            bg-white/20 backdrop-blur-md rounded-xl shadow-2xl
-                            transform rotate-[@(i % 2 == 0 ? "-1deg" : "1deg")]">
-                        <span class="text-2xl md:text-2xl font-bold text-white">🎭 @genre.Name</span>
-                        <span class="text-2xl md:text-2xl font-extrabold text-yellow-400">#@(i + 1)</span>
-                    </div>
+                    @for (int i = 0; i < Model.TopGenres.Count; i++)
+                    {
+                        var genre = Model.TopGenres[i];
+                        <div class="flex items-center justify-between w-full px-6 py-4
+                                        bg-white/20 backdrop-blur-md rounded-xl shadow-2xl
+                                        transform rotate-[@(i % 2 == 0 ? "-1deg" : "1deg")]">
+                            <span class="text-2xl md:text-2xl font-bold text-white">🎭 @genre.Name</span>
+                            <span class="text-2xl md:text-2xl font-extrabold text-yellow-400">#@(i + 1)</span>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-white text-center">No genre data available</p>
                 }
             </div>
         </div>
 
         <!-- Actor of the Year -->
-        @if (Model.YearActor != null)
+        @if (Model?.YearActor != null)
         {
             <div class="relative bg-gradient-to-br from-red-600 via-red-500 to-yellow-500 rounded-2xl p-6
-                    transform scale-105 shadow-2xl hover:scale-110 transition-all duration-500 flex flex-col items-center">
+                        transform scale-105 shadow-2xl hover:scale-110 transition-all duration-500 flex flex-col items-center">
 
                 <h3 class="text-3xl font-bold text-center text-white drop-shadow-lg mb-4">
                     🌟 Actor of the Year
                 </h3>
                 <div class="w-32 h-32 rounded-full overflow-hidden shadow-2xl mb-4 flex-shrink-0">
                     <img src="@Model.YearActor.ImageUrl" alt="@Model.YearActor.Name"
-                         class="w-full h-full object-cover border-4 border-white" />
+                         class="w-full h-full object-cover border-4 border-white"
+                         onerror="this.src='https://via.placeholder.com/150?text=Actor'" />
                 </div>
                 <p class="text-xl font-bold text-center mb-4">@Model.YearActor.Name</p>
 
-                <!-- Actor Roles -->
-                <div class="bg-black/20 rounded-xl p-4 text-white max-h-64 overflow-y-auto">
-                    <h4 class="text-xl font-bold mb-2">Roles in 2025:</h4>
-                    <ul class="list-disc list-inside space-y-1">
-                        @foreach (var c in Model.YearActorRoles)
-                        {
-                            <li class="font-semibold">🎬 @c.Title</li>
-                        }
-                    </ul>
-                </div>
+                @if (Model.YearActorRoles != null && Model.YearActorRoles.Any())
+                {
+                    <div class="bg-black/20 rounded-xl p-4 text-white max-h-64 overflow-y-auto">
+                        <h4 class="text-xl font-bold mb-2">Roles in 2025:</h4>
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach (var c in Model.YearActorRoles)
+                            {
+                                <li class="font-semibold">🎬 @c.Title</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
                 <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-16 h-8 bg-yellow-400 rounded-t-xl shadow-lg flex items-center justify-center font-bold text-gray-900">
                     #1
                 </div>
             </div>
         }
-
+        else
+        {
+            <div class="bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-6 flex items-center justify-center">
+                <p class="text-white text-center text-xl">No actor data for 2025 yet</p>
+            </div>
+        }
 
         <!-- Award -->
-        @if (Model.AwardedContent != null)
+        @if (Model?.AwardedContent != null)
         {
             <div class="bg-gradient-to-br from-red-600 via-red-500 to-yellow-500 rounded-2xl p-6
-                    transform rotate-[2deg] scale-105 shadow-2xl hover:scale-110 transition-all duration-500 relative">
+                        transform rotate-[2deg] scale-105 shadow-2xl hover:scale-110 transition-all duration-500 relative">
 
                 <h3 class="text-3xl font-bold mb-6 text-center text-white drop-shadow-lg">
                     🏆 Best of 2025
@@ -86,6 +99,12 @@
                 <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 w-20 h-10 bg-yellow-500 rounded-t-xl shadow-lg flex items-center justify-center font-bold text-gray-900">
                     #1
                 </div>
+            </div>
+        }
+        else
+        {
+            <div class="bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl p-6 flex items-center justify-center">
+                <p class="text-white text-center text-xl">No content awarded for 2025 yet</p>
             </div>
         }
     </div>

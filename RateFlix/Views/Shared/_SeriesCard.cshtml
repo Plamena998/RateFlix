@@ -1,10 +1,9 @@
-﻿@model RateFlix.Core.Models.Series
+﻿@using RateFlix.Core.ViewModels
+@model RateFlix.Core.ViewModels.SeriesCardViewModel
 
 <div class="series-card group cursor-pointer transform transition duration-300 hover:scale-105"
      onclick="loadContentModal(@Model.Id, 'Series')">
-
     <div class="relative overflow-hidden rounded-lg shadow-lg">
-
         <img src="@Model.ImageUrl"
              alt="@Model.Title"
              class="w-full h-80 object-cover group-hover:opacity-75 transition"
@@ -12,9 +11,7 @@
 
         <!-- Rating -->
         <div id="seriesBadge-@Model.Id" class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
-            <i class="fas fa-star"></i>  <span id="seriesBadge-@Model.Id">
-                @Model.IMDBScore.ToString("0.0")
-            </span>
+            <i class="fas fa-star"></i> <span>@Model.IMDBScore.ToString("0.0")</span>
         </div>
 
         <!-- Seasons -->
@@ -26,13 +23,13 @@
             <h3 class="font-bold text-lg truncate text-white">@Model.Title</h3>
             <p class="text-gray-300 text-sm">@Model.ReleaseYear</p>
 
-            @if (Model.ContentGenres != null && Model.ContentGenres.Any())
+            @if (Model.Genres != null && Model.Genres.Any())
             {
                 <div class="flex flex-wrap gap-1 mt-2">
-                    @foreach (var genre in Model.ContentGenres.Take(2))
+                    @foreach (var genre in Model.Genres)
                     {
                         <span class="bg-red-500 px-2 py-0.5 rounded text-xs text-white">
-                            @genre.Genre.Name
+                            @genre
                         </span>
                     }
                 </div>

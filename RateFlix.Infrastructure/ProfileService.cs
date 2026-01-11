@@ -61,7 +61,7 @@ namespace RateFlix.Services
                 .GroupBy(g => g)
                 .Select(g => new GenreStatViewModel
                 {
-                    Genre = g.Key,
+                    Name = g.Key,
                     Count = g.Count()
                 })
                 .OrderByDescending(g => g.Count)

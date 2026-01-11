@@ -21,7 +21,7 @@ namespace RateFlix.Services.Interfaces
                 int page = 1,
                 int pageSize = 20);
 
-        Task<Series?> GetSeriesWithDetailsAsync(int id);
-        Task<Series?> GetSeriesWithSeasonsAsync(int id);
+        Task<ContentViewModel?> GetSeriesWithDetailsAsync(int id);
+        Task<SeasonsViewModel?> GetSeriesWithSeasonsAsync(int id);
     }
 }

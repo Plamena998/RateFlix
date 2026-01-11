@@ -8,5 +8,7 @@ namespace RateFlix.Services.Interfaces
             int contentId,
             int score,
             string? review);
+        Task<(bool Success, string Message)> DeleteReviewAsync(int reviewId);
     }
+   
 }

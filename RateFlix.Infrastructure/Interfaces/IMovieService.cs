@@ -16,6 +16,6 @@ namespace RateFlix.Services.Interfaces
         Task<(List<MovieCardViewModel> Movies, int CurrentPage, int TotalPages, int TotalMovies)>
             LoadMoviesPageAsync(string? search, int? genreId, int? year, string? sortBy, int page = 1, int pageSize = 20);
 
-        Task<Movie?> GetMovieWithDetailsAsync(int id);
+        Task<ContentViewModel?> GetMovieWithDetailsAsync(int id);
     }
 }

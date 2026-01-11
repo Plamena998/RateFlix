@@ -6,8 +6,8 @@ namespace RateFlix.Core.ViewModels
 {
     public class MoviesIndexViewModel
     {
-        public List<Movie> Movies { get; set; } = new();
-        public List<Genre> Genres { get; set; } = new();
+        public List<MovieCardViewModel> Movies { get; set; } = new List<MovieCardViewModel>();
+        public List<Genre> Genres { get; set; } = new List<Genre>();
 
         public int CurrentPage { get; set; }
         public int TotalPages { get; set; }

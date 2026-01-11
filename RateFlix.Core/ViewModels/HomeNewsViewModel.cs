@@ -4,10 +4,10 @@ namespace RateFlix.Core.ViewModels
 {
     public class HomeNewsViewModel
     {
-        public HomeNewsViewModel NewsSection { get; set; }
-        public List<Genre> TopGenres { get; set; }    
-        public Actor YearActor { get; set; }  
-        public List<Content> YearActorRoles { get; set; }
-        public Content AwardedContent { get; set; }
+        public List<GenreStatViewModel> TopGenres { get; set; } = new List<GenreStatViewModel>();
+        public ActorViewModel? YearActor { get; set; }
+        public List<ContentViewModel> YearActorRoles { get; set; } = new List<ContentViewModel>();
+        public ContentViewModel? AwardedContent { get; set; }
+
     }
 }

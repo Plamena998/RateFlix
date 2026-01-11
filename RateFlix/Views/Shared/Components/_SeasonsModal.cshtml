@@ -1,25 +1,26 @@
-﻿@model RateFlix.Core.Models.Series
+﻿@using RateFlix.Core.ViewModels
+@model RateFlix.Core.ViewModels.SeasonsViewModel
 
-<div id="seasonsModal-@Model.Id"
+<div id="seasonsModal-@Model.SeriesId"
      class="fixed inset-0 bg-black bg-opacity-90 z-50 hidden flex items-center justify-center p-4"
-     onclick="closeSeasonsModal(@Model.Id)">
-
-    <div class="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6"
+     onclick="closeSeasonsModal(@Model.SeriesId)">
+    <div class="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 relative"
          onclick="event.stopPropagation()">
 
         <!-- Close -->
-        <button onclick="closeSeasonsModal(@Model.Id)"
+        <button onclick="closeSeasonsModal(@Model.SeriesId)"
                 class="absolute top-4 right-4 bg-black bg-opacity-60 hover:bg-opacity-80 text-white
-                       rounded-full w-10 h-10 flex items-center justify-center text-xl z-10">
+                       rounded-full w-10 h-10 flex items-center justify-center text-xl z-10 transition-all hover:scale-110">
             <i class="fas fa-times"></i>
         </button>
 
-        <h2 class="text-3xl font-bold text-white mb-6">@Model.Title - Seasons & Episodes</h2>
+        <h2 class="text-3xl font-bold text-white mb-6">@Model.SeriesTitle - Seasons & Episodes</h2>
 
-        @foreach (var season in Model.Seasons.OrderBy(s => s.SeasonNumber))
+        @foreach (var season in Model.Seasons)
         {
             <div class="mb-4 border-b border-gray-700 pb-4">
-                <div class="flex justify-between items-center cursor-pointer" onclick="toggleSeason(@season.Id)">
+                <div class="flex justify-between items-center cursor-pointer hover:bg-gray-800 p-2 rounded transition"
+                     onclick="toggleSeason(@season.Id)">
                     <h3 class="text-xl font-semibold text-white">
                         Season @season.SeasonNumber
                         <span class="text-yellow-400 ml-2">
@@ -29,12 +30,14 @@
                     <i id="chevron-@season.Id" class="fas fa-chevron-down text-gray-400 transition-transform duration-300"></i>
                 </div>
 
-                <div id="season-@season.Id" class="mt-2 hidden pl-4">
-                    @foreach (var episode in season.Episodes.OrderBy(e => e.EpisodeNumber))
+                <div id="season-@season.Id" class="mt-2 hidden pl-4 space-y-2">
+                    @foreach (var episode in season.Episodes)
                     {
-                        <div class="mb-2 flex justify-between items-center bg-gray-800 p-2 rounded-lg">
-                            <span class="text-white">Episode @episode.EpisodeNumber: @episode.Title</span>
-                            <span class="text-yellow-400">
+                        <div class="flex justify-between items-center bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition">
+                            <span class="text-white">
+                                <span class="font-semibold">Episode @episode.EpisodeNumber:</span> @episode.Title
+                            </span>
+                            <span class="text-yellow-400 font-semibold">
                                 <i class="fas fa-star mr-1"></i>@episode.IMDBScore.ToString("0.0")
                             </span>
                         </div>
@@ -42,5 +45,14 @@
                 </div>
             </div>
         }
+
+        @if (!Model.Seasons.Any())
+        {
+            <div class="text-center text-gray-400 py-8">
+                <i class="fas fa-info-circle text-4xl mb-2"></i>
+                <p>No seasons available yet.</p>
+            </div>
+        }
+
     </div>
 </div>

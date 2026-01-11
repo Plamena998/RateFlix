@@ -34,4 +34,15 @@ public class ReviewsController : Controller
             newRating = result.NewRating
         });
     }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteReview(int reviewId)
+    {
+        var result = await _reviewService.DeleteReviewAsync(reviewId);
+
+        if (result.Success)
+            return Json(new { success = true, message = result.Message });
+
+        return Json(new { success = false, message = result.Message });
+    }
 }

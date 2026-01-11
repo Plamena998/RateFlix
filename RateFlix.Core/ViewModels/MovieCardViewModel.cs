@@ -15,5 +15,6 @@ namespace RateFlix.Core.ViewModels
         public double IMDBScore { get; set; }    
         public string? ImageUrl { get; set; }
         public int Duration { get; set; }
+        public List<string> Genres { get; set; } = new List<string>();
     }
 }
