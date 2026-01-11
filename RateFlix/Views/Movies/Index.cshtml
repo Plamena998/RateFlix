@@ -1,4 +1,4 @@
-﻿@model RateFlix.Models.ViewModels.MoviesIndexViewModel
+﻿@model RateFlix.Core.ViewModels.MoviesIndexViewModel
 @{
     ViewData["Title"] = "Movies";
 }
@@ -145,32 +145,33 @@
                 });
             }
 
-            function renderMovies(movies) {
-                const grid = $('#moviesGrid');
-                grid.empty();
+                    function renderMovies(movies) {
+            const grid = $('#moviesGrid');
+            grid.empty();
 
-                if (!movies || movies.length === 0) {
-                    grid.html('<div class="col-span-full text-center py-12 text-gray-400 text-xl">No movies found</div>');
-                    return;
-                }
+            if (!movies || movies.length === 0) {
+                grid.html('<div class="col-span-full text-center py-12 text-gray-400 text-xl">No movies found</div>');
+                return;
+            }
 
-                movies.forEach(movie => {
-                    grid.append(`
-                        <div class="movie-card group cursor-pointer transform transition duration-300 hover:scale-105" data-movie-id="${movie.id}">
-                            <div class="relative overflow-hidden rounded-lg shadow-lg">
-                                <img src="${movie.image}" class="w-full h-80 object-cover group-hover:opacity-75 transition" />
-                                <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
-                                    <i class="fas fa-star"></i> ${movie.rating}
-                                </div>
-                                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                                    <h3 class="font-bold text-lg truncate text-white">${movie.title}</h3>
-                                    <p class="text-gray-300 text-sm">${movie.year}</p>
-                                </div>
+            movies.forEach(movie => {
+                grid.append(`
+                    <div class="movie-card group cursor-pointer transform transition duration-300 hover:scale-105" data-movie-id="${movie.id}">
+                        <div class="relative overflow-hidden rounded-lg shadow-lg">
+                            <img src="${movie.imageUrl}" class="w-full h-80 object-cover group-hover:opacity-75 transition"
+                                 onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                            <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold imdb-score">
+                                <i class="fas fa-star"></i> ${movie.imdbScore}
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                <h3 class="font-bold text-lg truncate text-white">${movie.title}</h3>
+                                <p class="text-gray-300 text-sm">${movie.releaseYear}</p>
                             </div>
                         </div>
-                    `);
-                });
-            }
+                    </div>
+                `);
+            });
+        }
 
             function updatePagination(page, total) {
                 const container = $('#paginationContainer');

@@ -3,10 +3,11 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using RateFlix.Core;
+using RateFlix.Core.Models;
 using RateFlix.Data;
-using RateFlix.Data.Models;
-using RateFlix.Infrastructure;
 using RateFlix.Middleware;
+using RateFlix.Services;
+using RateFlix.Services.Interfaces;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -19,8 +20,30 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
+
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        // This makes all JSON responses use camelCase (id, title, image)
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 // HttpClient for TMDb service
 builder.Services.AddHttpClient<TmdbService>();
+
+builder.Services.AddScoped<IHomeService, HomeService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IActorsService, ActorsService>();
+builder.Services.AddScoped<IMovieService, MovieService>();
+builder.Services.AddScoped<ISeriesService, SeriesService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<IAdminMovieService, AdminMovieService>();
+builder.Services.AddScoped<IAdminSeriesService, AdminSeriesService>();
+builder.Services.AddScoped<IAdminUsersService, AdminUsersService>();
+builder.Services.AddScoped<IAdminReviewsService, AdminReviewsService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+
 
 // AppOptions from configuration
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppOptions"));

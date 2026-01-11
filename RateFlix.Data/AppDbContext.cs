@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using RateFlix.Data.Models;
+using RateFlix.Core.Models;
 using RateFlix.Infrastructure;
 using System;
 using System.Collections.Generic;

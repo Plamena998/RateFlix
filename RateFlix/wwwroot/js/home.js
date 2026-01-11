@@ -43,14 +43,14 @@
             html += '<div class="p-4"><h3 class="font-bold text-red-500 mb-2">Movies</h3>';
             data.movies.forEach(movie => {
                 html += `
-                    <a href="/Movies/Details/${movie.id}" class="flex items-center gap-4 p-2 hover:bg-gray-700 rounded transition">
-                        <img src="${movie.image}" alt="${movie.title}" class="w-12 h-16 object-cover rounded" onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
-                        <div>
-                            <div class="font-semibold">${movie.title}</div>
-                            <div class="text-sm text-gray-400">${movie.year} • <i class="fas fa-star text-yellow-500"></i> ${movie.rating}</div>
-                        </div>
-                    </a>
-                `;
+                <a href="/Movies/Details/${movie.id}" class="flex items-center gap-4 p-2 hover:bg-gray-700 rounded transition">
+                    <img src="${movie.imageUrl}" alt="${movie.title}" class="w-12 h-16 object-cover rounded" onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                    <div>
+                        <div class="font-semibold">${movie.title}</div>
+                        <div class="text-sm text-gray-400">${movie.releaseYear} • <i class="fas fa-star text-yellow-500"></i> ${movie.imdbScore}</div>
+                    </div>
+                </a>
+            `;
             });
             html += '</div>';
         }
@@ -59,14 +59,14 @@
             html += '<div class="p-4"><h3 class="font-bold text-red-500 mb-2">Series</h3>';
             data.series.forEach(series => {
                 html += `
-                    <a href="/Series/Details/${series.id}" class="flex items-center gap-4 p-2 hover:bg-gray-700 rounded transition">
-                        <img src="${series.image}" alt="${series.title}" class="w-12 h-16 object-cover rounded" onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
-                        <div>
-                            <div class="font-semibold">${series.title}</div>
-                            <div class="text-sm text-gray-400">${series.year} • <i class="fas fa-star text-yellow-500"></i> ${series.rating}</div>
-                        </div>
-                    </a>
-                `;
+                <a href="/Series/Details/${series.id}" class="flex items-center gap-4 p-2 hover:bg-gray-700 rounded transition">
+                    <img src="${series.imageUrl}" alt="${series.title}" class="w-12 h-16 object-cover rounded" onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                    <div>
+                        <div class="font-semibold">${series.title}</div>
+                        <div class="text-sm text-gray-400">${series.releaseYear} • <i class="fas fa-star text-yellow-500"></i> ${series.imdbScore}</div>
+                    </div>
+                </a>
+            `;
             });
             html += '</div>';
         }
@@ -99,22 +99,22 @@
 
                 movies.forEach(movie => {
                     const card = `
-                    <div class="movie-card group cursor-pointer transform transition duration-300 hover:scale-105" onclick="loadContentModal(${movie.id}, 'Movies')">
-                        <div class="relative overflow-hidden rounded-lg shadow-lg">
-                            <img src="${movie.image}" 
-                                 alt="${movie.title}" 
-                                 class="w-full h-80 object-cover group-hover:opacity-75 transition"
-                                 onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
-                            <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
-                                <i class="fas fa-star"></i> ${movie.rating}
-                            </div>
-                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                                <h3 class="font-bold text-lg truncate">${movie.title}</h3>
-                                <p class="text-gray-400 text-sm">${movie.year}</p>
-                            </div>
+                <div class="movie-card group cursor-pointer transform transition duration-300 hover:scale-105" onclick="loadContentModal(${movie.id}, 'Movies')">
+                    <div class="relative overflow-hidden rounded-lg shadow-lg">
+                        <img src="${movie.imageUrl}" 
+                             alt="${movie.title}" 
+                             class="w-full h-80 object-cover group-hover:opacity-75 transition"
+                             onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                        <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
+                            <i class="fas fa-star"></i> ${movie.imdbScore}
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                            <h3 class="font-bold text-lg truncate">${movie.title}</h3>
+                            <p class="text-gray-400 text-sm">${movie.releaseYear}</p>
                         </div>
                     </div>
-                `;
+                </div>
+            `;
                     $('#trendingMoviesGrid').append(card);
                 });
 

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using RateFlix.Core.Models;
 using RateFlix.Data;
-using RateFlix.Data.Models;
 using RateFlix.Infrastructure;
 using System.Globalization;
 

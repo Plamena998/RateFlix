@@ -1,11 +1,11 @@
-﻿@using RateFlix.Data.Models
-@model RateFlix.Data.Models.Content
+﻿@using RateFlix.Core.Models
+@model RateFlix.Core.Models.Content
 
 @{
-    var contentType = Model is RateFlix.Data.Models.Movie ? "Movie" :
-                      Model is RateFlix.Data.Models.Series ? "Series" : "Content";
-    var isSeries = Model is RateFlix.Data.Models.Series;
-    var isMovie = Model is RateFlix.Data.Models.Movie;
+    var contentType = Model is Movie ? "Movie" :
+                      Model is Series ? "Series" : "Content";
+    var isSeries = Model is Series;
+    var isMovie = Model is Movie;
 }
 
 <div id="contentModal-@Model.Id"
@@ -50,14 +50,14 @@
                     </span>
                     @if (isMovie)
                     {
-                        var movie = Model as RateFlix.Data.Models.Movie;
+                        var movie = Model as RateFlix.Core.Models.Movie;
                         <span class="bg-gray-800 text-white px-4 py-2 rounded-lg font-semibold">
                             @movie.Duration min
                         </span>
                     }
                     @if (isSeries)
                     {
-                        var series = Model as RateFlix.Data.Models.Series;
+                        var series = Model as RateFlix.Core.Models.Series;
                         <span class="bg-red-500 text-white px-4 py-2 rounded-lg font-semibold">
                             @series.TotalSeasons Seasons
                         </span>
@@ -104,7 +104,7 @@
 
                         @if (isMovie)
                         {
-                            var m = Model as RateFlix.Data.Models.Movie;
+                            var m = Model as RateFlix.Core.Models.Movie;
                             <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
                                 <img src="@m.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
                                 <span class="text-white font-semibold">@m.Director.Name</span>
@@ -113,7 +113,7 @@
 
                         @if (isSeries)
                         {
-                            var s = Model as RateFlix.Data.Models.Series;
+                            var s = Model as RateFlix.Core.Models.Series;
                             <div class="flex items-center gap-3 bg-gray-800 p-3 rounded-lg">
                                 <img src="@s.Director.ImageUrl" class="w-16 h-16 rounded-full object-cover" />
                                 <span class="text-white font-semibold">@s.Director.Name</span>

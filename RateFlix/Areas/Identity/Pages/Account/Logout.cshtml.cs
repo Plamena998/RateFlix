@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using RateFlix.Core.Models;
 using RateFlix.Infrastructure;
 
 namespace RateFlix.Areas.Identity.Pages.Account

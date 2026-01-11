@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using RateFlix.Core.Models;
 using RateFlix.Infrastructure;
 
 namespace RateFlix.Areas.Identity.Pages.Account

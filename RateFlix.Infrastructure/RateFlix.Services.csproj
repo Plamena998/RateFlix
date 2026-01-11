@@ -21,4 +21,9 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RateFlix.Core\RateFlix.Core.csproj" />
+    <ProjectReference Include="..\RateFlix.Data\RateFlix.Data.csproj" />
+  </ItemGroup>
+
 </Project>

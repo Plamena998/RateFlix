@@ -1,4 +1,4 @@
-﻿@model RateFlix.Models.ViewModels.SeriesIndexViewModel
+﻿@model RateFlix.Core.ViewModels.SeriesIndexViewModel
 @{
     ViewData["Title"] = "Series";
 }
@@ -187,38 +187,38 @@
                 });
             }
 
-            function displaySeries(seriesList) {
-                const grid = $('#seriesGrid');
-                grid.empty();
+                    function displaySeries(seriesList) {
+            const grid = $('#seriesGrid');
+            grid.empty();
 
-                if (!seriesList || seriesList.length === 0) {
-                    grid.html('<div class="col-span-full text-center py-12 text-gray-400 text-xl">No series found</div>');
-                    return;
-                }
+            if (!seriesList || seriesList.length === 0) {
+                grid.html('<div class="col-span-full text-center py-12 text-gray-400 text-xl">No series found</div>');
+                return;
+            }
 
-                seriesList.forEach(series => {
-                    const card = `
-                        <div class="series-card group cursor-pointer transform transition duration-300 hover:scale-105" onclick="loadContentModal(${series.id}, 'Series')">
-                            <div class="relative overflow-hidden rounded-lg shadow-lg">
-                                <img src="${series.image}" alt="${series.title}"
-                                     class="w-full h-80 object-cover group-hover:opacity-75 transition"
-                                     onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
-                                <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
-                                    <i class="fas fa-star"></i> ${series.rating}
-                                </div>
-                                <div class="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded text-xs font-bold">
-                                    ${series.totalSeasons} Seasons
-                                </div>
-                                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
-                                    <h3 class="font-bold text-lg truncate text-white">${series.title}</h3>
-                                    <p class="text-gray-300 text-sm">${series.year}</p>
-                                </div>
+            seriesList.forEach(series => {
+                const card = `
+                    <div class="series-card group cursor-pointer transform transition duration-300 hover:scale-105" onclick="loadContentModal(${series.id}, 'Series')">
+                        <div class="relative overflow-hidden rounded-lg shadow-lg">
+                            <img src="${series.imageUrl}" alt="${series.title}"
+                                 class="w-full h-80 object-cover group-hover:opacity-75 transition"
+                                 onerror="this.src='https://via.placeholder.com/500x750?text=No+Image'" />
+                            <div class="absolute top-2 right-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-sm font-bold">
+                                <i class="fas fa-star"></i> ${series.imdbScore}
+                            </div>
+                            <div class="absolute top-2 left-2 bg-red-500 px-2 py-1 rounded text-xs font-bold">
+                                ${series.totalSeasons} Seasons
+                            </div>
+                            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4">
+                                <h3 class="font-bold text-lg truncate text-white">${series.title}</h3>
+                                <p class="text-gray-300 text-sm">${series.releaseYear}</p>
                             </div>
                         </div>
-                    `;
-                    grid.append(card);
-                });
-            }
+                    </div>
+                `;
+                grid.append(card);
+            });
+        }
 
             let searchTimeout;
             $('#searchInput').on('input', function() {
