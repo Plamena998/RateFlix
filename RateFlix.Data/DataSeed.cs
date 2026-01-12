@@ -45,7 +45,7 @@ public static class DataSeed
             var movieGenres = await tmdbService.GetMovieGenresAsync();
             var tvGenres = await tmdbService.GetTvGenresAsync();
 
-            // Обединява жанровете (премахва дубликати по име)
+            //genres without duplicates
             var allGenres = movieGenres
                 .Concat(tvGenres)
                 .GroupBy(g => g.Name)
@@ -64,7 +64,7 @@ public static class DataSeed
 
         var genres = context.Genres.ToList();
 
-        // Речници за актьори и директори (за да избегна дубликати)
+        // dictionaries to cache actors and directors
         var actorCache = new Dictionary<int, Actor>();
         var directorCache = new Dictionary<int, Director>();
 
@@ -88,7 +88,7 @@ public static class DataSeed
 
                         var credits = await tmdbService.GetMovieCreditsAsync(tmdb.Id);
 
-                        // Вземаме директора от credits
+                        // get durectors => credits
                         var directorCrew = credits?.Crew?.FirstOrDefault(c => c.Job == "Director");
                         Director? director = null;
 
@@ -132,7 +132,7 @@ public static class DataSeed
                         context.Movies.Add(movie);
                         await context.SaveChangesAsync();
 
-                        // Добавяме жанрове
+                        // add genres (top 3)
                         foreach (var genreId in tmdb.Genre_ids.Take(3))
                         {
                             var genre = genres.FirstOrDefault(g => g.Name == GetGenreName(genreId));
@@ -146,7 +146,7 @@ public static class DataSeed
                             }
                         }
 
-                        // Добавяме актьори (топ 5)
+                        // add actors (top 5)
                         if (credits?.Cast != null)
                         {
                             foreach (var tmdbActor in credits.Cast.Take(5))
@@ -181,7 +181,7 @@ public static class DataSeed
                         await context.SaveChangesAsync();
                         added++;
 
-                        // Rate limiting - пауза между заявки
+                        // Rate limiting - avoid hitting TMDB API limits
                         await Task.Delay(250);
                     }
                     catch (Exception ex)
@@ -194,7 +194,7 @@ public static class DataSeed
             }
         }
 
-        // ===== Series with Real Seasons and Episodes =====
+        // ===== Series with Seasons and Episodes =====
         if (!context.Series.Any())
         {
             int page = 1, added = 0;
@@ -218,7 +218,7 @@ public static class DataSeed
 
                         var credits = await tmdbService.GetSeriesCreditsAsync(tmdb.Id);
 
-                        // Вземаме creator/director
+                        // get director
                         Director? director = null;
                         var creator = seriesDetails.Created_by?.FirstOrDefault();
 
@@ -250,7 +250,7 @@ public static class DataSeed
                             Title = seriesDetails.Name,
                             Description = seriesDetails.Overview,
                             ReleaseYear = airDate.Year,
-                            IMDBScore = 0, // Ще се изчисли от сезоните
+                            IMDBScore = 0, // calculated after seasons and episodes are added
                             MetaScore = 0,
                             DirectorId = director.Id,
                             ImageUrl = $"https://image.tmdb.org/t/p/w500{seriesDetails.Poster_path}",
@@ -262,7 +262,7 @@ public static class DataSeed
                         context.Series.Add(series);
                         await context.SaveChangesAsync();
 
-                        // Добавяме жанрове
+                        // add genres (top 3)
                         foreach (var genre in seriesDetails.Genres.Take(3))
                         {
                             var dbGenre = genres.FirstOrDefault(g => g.Name == genre.Name);
@@ -276,7 +276,7 @@ public static class DataSeed
                             }
                         }
 
-                        // Добавяме актьори (топ 5)
+                        // add actors (top 5)
                         if (credits?.Cast != null)
                         {
                             foreach (var tmdbActor in credits.Cast.Take(5))
@@ -310,8 +310,8 @@ public static class DataSeed
 
                         await context.SaveChangesAsync();
 
-                        // ===== Зареждаме реални сезони и епизоди =====
-                        var seasonsToLoad = Math.Min(seriesDetails.Number_of_seasons, 3); // Зареждаме max 3 сезона
+                        // ===== seasons and episodes =====
+                        var seasonsToLoad = Math.Min(seriesDetails.Number_of_seasons, 3); 
 
                         for (int seasonNum = 1; seasonNum <= seasonsToLoad; seasonNum++)
                         {
@@ -333,7 +333,6 @@ public static class DataSeed
                             context.Seasons.Add(season);
                             await context.SaveChangesAsync();
 
-                            // Добавяме епизоди за сезона
                             foreach (var tmdbEpisode in tmdbSeason.Episodes)
                             {
                                 context.Episodes.Add(new Episode
@@ -350,7 +349,7 @@ public static class DataSeed
 
                             await context.SaveChangesAsync();
 
-                            // Изчисляваме оценки на сезона
+                            // calculating season scores
                             var episodes = context.Episodes.Where(e => e.SeasonId == season.Id).ToList();
                             if (episodes.Any())
                             {
@@ -363,7 +362,7 @@ public static class DataSeed
 
                         await context.SaveChangesAsync();
 
-                        // Изчисляваме оценки на сериала
+                        // calculating series scores
                         var seasons = context.Seasons.Where(s => s.SeriesId == series.Id).ToList();
                         if (seasons.Any())
                         {
@@ -387,7 +386,7 @@ public static class DataSeed
         }
     }
 
-    // Helper метод за мапване на genre ID към име (TMDB genre IDs)
+    // Helper метод for map genre ID към име (TMDB genre IDs)
     private static string GetGenreName(int genreId)
     {
         return genreId switch

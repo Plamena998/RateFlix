@@ -35,7 +35,7 @@ namespace RateFlix.Services
                     .Where(u => u.CreatedAt.Month == now.Month && u.CreatedAt.Year == now.Year)
                     .CountAsync(),
                 ActiveUsers = await _context.Users
-                    .Where(u => u.UpdatedAt >= now.AddDays(-30))
+                    .Where(u => u.CreatedAt >= now.AddDays(-30))
                     .CountAsync(),
 
                 TotalMovies = await _context.Movies.CountAsync(),

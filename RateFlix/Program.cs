@@ -24,10 +24,10 @@ builder.Services.AddIdentity<AppUser, IdentityRole>()
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
-        // This makes all JSON responses use camelCase (id, title, image)
+        // all JSON responses use camelCase
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
-// HttpClient for TMDb service
+
 builder.Services.AddHttpClient<TmdbService>();
 
 builder.Services.AddScoped<IHomeService, HomeService>();
@@ -45,7 +45,7 @@ builder.Services.AddScoped<IAdminReviewsService, AdminReviewsService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 
-// AppOptions from configuration
+// AppOptions
 builder.Services.Configure<AppOptions>(builder.Configuration.GetSection("AppOptions"));
 builder.Services.AddSingleton(resolver =>
     resolver.GetRequiredService<IOptions<AppOptions>>().Value);

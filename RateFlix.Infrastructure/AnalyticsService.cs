@@ -17,13 +17,13 @@ namespace RateFlix.Services
         {
             var now = DateTime.UtcNow;
 
-            // Зареждаме всички ревюта за текущата година
+            // Reviews for current year
             var reviewStats = await _context.Reviews
                 .Include(r => r.Content)
                 .Where(r => r.CreatedAt.Year == now.Year)
                 .ToListAsync();
 
-            // Reviews per day (текущ месец)
+            // Reviews per day (this month)
             var reviewsThisMonth = reviewStats
                 .Where(r => r.CreatedAt.Month == now.Month)
                 .GroupBy(r => r.CreatedAt.Date)
@@ -35,7 +35,7 @@ namespace RateFlix.Services
                 .OrderBy(x => x.Date)
                 .ToList();
 
-            // Reviews per month (последните 12 месеца)
+            // Reviews per month (last year)
             var reviewsPerMonthRaw = reviewStats
                 .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
                 .Select(g => new

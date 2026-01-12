@@ -85,7 +85,7 @@ namespace RateFlix.Services
             return new UserProfileViewModel
             {
                 UserId = userId,
-                UserName = "User", // TODO: get from Identity if needed
+                UserName = "User",
                 Reviews = reviews,
                 Favorites = favorites,
                 Statistics = statistics
