@@ -16,7 +16,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Identity
-builder.Services.AddIdentity<AppUser, IdentityRole>()
+builder.Services.AddIdentity<AppUser, IdentityRole>(x => { x.Password.RequiredLength = 12; })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
